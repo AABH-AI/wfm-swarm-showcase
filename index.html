@@ -1,0 +1,264 @@
+<title>Agent Swarm for Workforce Management — Architecture Overview</title>
+<style>
+  :root {
+    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
+    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
+    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
+    --good: #2e7d4f; --good-soft: #e2f1e8;
+    --warn: #a06e10; --warn-soft: #f6ecd7;
+    --crit: #b0453a; --crit-soft: #f7e5e2;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+    --display: Bahnschrift, "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
+      --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
+      --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
+      --good: #57c186; --good-soft: #10301f;
+      --warn: #e0ae4a; --warn-soft: #33290f;
+      --crit: #e08273; --crit-soft: #38201c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
+    --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
+    --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
+    --good: #57c186; --good-soft: #10301f;
+    --warn: #e0ae4a; --warn-soft: #33290f;
+    --crit: #e08273; --crit-soft: #38201c;
+  }
+  :root[data-theme="light"] {
+    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
+    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
+    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
+    --good: #2e7d4f; --good-soft: #e2f1e8;
+    --warn: #a06e10; --warn-soft: #f6ecd7;
+    --crit: #b0453a; --crit-soft: #f7e5e2;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; margin: 0; padding: 0 20px 80px; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  section { margin-top: 60px; }
+  .section-head { border-top: 2px solid var(--ink); padding-top: 14px; margin-bottom: 22px; }
+  .section-head h2 { font-size: 24px; font-weight: 600; }
+  .section-head p { color: var(--ink-2); max-width: 68ch; margin: 8px 0 0; }
+  header.mast { padding: 44px 0 0; }
+  h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 700; letter-spacing: -.01em; margin: 10px 0 12px; }
+  .lede { font-size: 17px; color: var(--ink-2); max-width: 62ch; margin: 0 0 22px; }
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 26px; }
+  .stat { background: var(--panel); padding: 14px 16px; }
+  .stat b { display: block; font-family: var(--display); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--mono); }
+  .arch { display: grid; gap: 10px; }
+  .arch-band { border: 1px dashed var(--line); background: var(--panel-2); padding: 9px 14px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); text-align: center; letter-spacing: .06em; }
+  .node { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 12px 14px; }
+  .node h3 { font-size: 15px; font-weight: 600; }
+  .node p { margin: 5px 0 0; font-size: 12.5px; color: var(--ink-2); }
+  .orch { border-top-color: var(--ink); }
+  .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .mesh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mesh-row .node { border-top-color: var(--crit); }
+  .flowlbl { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .08em; }
+  @media (max-width: 640px) { .mesh-row { grid-template-columns: 1fr; } }
+  .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .band { border: 1px solid var(--line); background: var(--panel); padding: 16px; }
+  .band .range { font-family: var(--display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .band h3 { font-size: 14px; margin-top: 2px; }
+  .band p { font-size: 13px; color: var(--ink-2); margin: 8px 0 0; }
+  .band.auto { border-top: 3px solid var(--good); } .band.auto .range { color: var(--good); }
+  .band.co { border-top: 3px solid var(--warn); } .band.co .range { color: var(--warn); }
+  .band.esc { border-top: 3px solid var(--crit); } .band.esc .range { color: var(--crit); }
+  .steps { counter-reset: step; display: grid; gap: 0; border: 1px solid var(--line); background: var(--panel); }
+  .step { display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .step:last-child { border-bottom: 0; }
+  .step::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-family: var(--mono); font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .step h3 { font-size: 14px; }
+  .step p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .taxgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 760px) { .taxgrid { grid-template-columns: 1fr; } }
+  .tax { border: 1px solid var(--line); background: var(--panel); padding: 14px 16px; }
+  .tax h3 { font-size: 14.5px; }
+  .tax p { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; }
+  .tblwrap { overflow-x: auto; border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; background: var(--panel); font-size: 13.5px; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; }
+  th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.mono, .mono { font-family: var(--mono); font-size: 12.5px; }
+  pre { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--accent); padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; margin: 0; }
+  pre .c { color: var(--ink-3); }
+  footer { margin-top: 60px; border-top: 1px solid var(--line); padding-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .06em; }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Architecture case study · multi-agent systems</p>
+  <h1>Agent Swarm for Workforce Management Operations</h1>
+  <p class="lede">A hub-and-spoke orchestrator with a peer-mesh layer for cross-functional analysis: one orchestrator, five domain agents, two cross-cutting agents. Every anomaly is detected, diagnosed against a configurable root-cause knowledge base, and either auto-resolved, queued for a time-boxed human confirmation, or escalated — with a tamper-evident audit trail behind every decision.</p>
+  <div class="statgrid">
+    <div class="stat"><b>7+1</b><span>agents + orchestrator</span></div>
+    <div class="stat"><b>3</b><span>confidence bands</span></div>
+    <div class="stat"><b>&lt;5 min</b><span>time-to-diagnosis target</span></div>
+    <div class="stat"><b>27</b><span>tests, all offline</span></div>
+  </div>
+</header>
+
+<section id="arch">
+  <div class="section-head">
+    <p class="eyebrow">01 · Topology</p>
+    <h2>Hub-and-spoke core, peer mesh on top</h2>
+    <p>The orchestrator is the only component that dispatches work — domain agents never call each other. Every agent result is published to a shared <strong>blackboard</strong>; two cross-cutting agents hold standing read access to it. Mesh visibility without mesh feedback loops.</p>
+  </div>
+  <div class="arch">
+    <div class="arch-band">TRIGGERS &nbsp;·&nbsp; scheduled · event-driven · threshold breach · analyst request</div>
+    <div class="flowlbl">▼ routed by rules first, LLM only for free text</div>
+    <div class="node orch">
+      <h3>Orchestrator</h3>
+      <p>Maps each trigger to domain tasks · applies the confidence gate to every result · writes each decision to a hash-chained audit log. Unroutable triggers escalate — they are never guessed.</p>
+    </div>
+    <div class="flowlbl">▼ parallel fan-out</div>
+    <div class="pillars">
+      <div class="node"><h3>Forecast</h3><p>Volume forecasting, anomaly detection, event-impact modeling, narrative commentary.</p></div>
+      <div class="node"><h3>Capacity</h3><p>Handle-time calibration, Erlang-C headcount planning, shrinkage trending, hiring recommendations.</p></div>
+      <div class="node"><h3>Scheduling</h3><p>Schedule optimization and live intraday re-optimization.</p></div>
+      <div class="node"><h3>Real-Time Adherence</h3><p>Live alerting, service-level breach prediction, ticketing-system auto-triage.</p></div>
+      <div class="node"><h3>Reporting</h3><p>Daily KPI snapshots keep the mesh supplied with ground truth.</p></div>
+    </div>
+    <div class="flowlbl">▼ every result published to the blackboard</div>
+    <div class="arch-band">BLACKBOARD &nbsp;·&nbsp; peer-read data plane — cross-cutting agents read everything, dispatch nothing</div>
+    <div class="mesh-row">
+      <div class="node"><h3>Root-Cause Agent</h3><p>Classifies breaches against a configurable knowledge base, ranks top causes with cited evidence, opens a tracking ticket.</p></div>
+      <div class="node"><h3>Executive Summary</h3><p>Reads all domains and writes the leadership digest — the top-level human interface.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="gate">
+  <div class="section-head">
+    <p class="eyebrow">02 · Decision routing</p>
+    <h2>The confidence gate</h2>
+    <p>Confidence is computed from evidence — data volume, tool failures, model agreement — not from a model's self-assessment alone. Every result passes through the gate; nothing reaches a system of record without it.</p>
+  </div>
+  <div class="gate">
+    <div class="band auto">
+      <span class="range">High</span>
+      <h3>Autonomous</h3>
+      <p>Corrective action executes and is logged automatically. Early in a rollout, execution can still be held for human confirmation regardless of score.</p>
+    </div>
+    <div class="band co">
+      <span class="range">Medium</span>
+      <h3>Copilot</h3>
+      <p>Top-ranked causes with evidence land in an approval queue. A human confirms or overrides within a fixed SLA; approval replays the exact stored action.</p>
+    </div>
+    <div class="band esc">
+      <span class="range">Low</span>
+      <h3>Escalate</h3>
+      <p>Flagged as a <em>novel</em> case with the full evidence bundle. The outcome of the human investigation feeds the next classifier retraining cycle.</p>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="section-head">
+    <p class="eyebrow">03 · Workflow</p>
+    <h2>Breach to closed loop in eight steps</h2>
+    <p>The diagnostic data flow, as implemented. Steps 1–2 are the trigger layer; 3–4 the evidence and classification layers; 5–8 routing, narrative, logging, and learning.</p>
+  </div>
+  <div class="steps">
+    <div class="step"><h3>Monitor</h3><p>Continuous KPI watch against per-domain thresholds.</p></div>
+    <div class="step"><h3>Detect</h3><p>A threshold breach becomes a trigger with a trace ID; breach details are audited before any work starts.</p></div>
+    <div class="step"><h3>Collect</h3><p>Domain agents pull evidence from every connected system in parallel and publish to the blackboard.</p></div>
+    <div class="step"><h3>Classify</h3><p>The root-cause agent scores the evidence against the configured knowledge base and ranks the top candidates with cited evidence.</p></div>
+    <div class="step"><h3>Route</h3><p>The confidence gate sends the result down the autonomous, copilot, or escalation path.</p></div>
+    <div class="step"><h3>Generate</h3><p>Structured narrative: breach summary, top cause, supporting causes, and the pre-approved corrective action.</p></div>
+    <div class="step"><h3>Log</h3><p>A tracking ticket is created with the full package; the decision and evidence land in the tamper-evident audit log.</p></div>
+    <div class="step"><h3>Close the loop</h3><p>Human confirmation is appended to a retraining feed; each case is stored as vector-searchable precedent for the next one.</p></div>
+  </div>
+</section>
+
+<section id="tax">
+  <div class="section-head">
+    <p class="eyebrow">04 · Knowledge base</p>
+    <h2>Root causes are data, not model guesses</h2>
+    <p>The classifier picks causes from a configurable taxonomy of failure categories per domain — the corrective action attached to a diagnosis is looked up from that taxonomy, never invented by the model. No match means <em>novel cause</em> → automatic escalation instead of a confident-sounding wrong answer.</p>
+  </div>
+  <div class="taxgrid">
+    <div class="tax"><h3>A · Data &amp; Input Failures</h3><p>Upstream data quality issues that corrupt an output before any model runs — stale feeds, mapping mismatches, historical gaps.</p></div>
+    <div class="tax"><h3>B · Model &amp; Methodology</h3><p>Issues in the model itself — outdated patterns, missing event inputs, drift, mis-scoped assumptions.</p></div>
+    <div class="tax"><h3>C · External Drivers</h3><p>Causes outside the system's control — demand surges, outages, unplanned business activity — detected and accounted for, not ignored.</p></div>
+    <div class="tax"><h3>D · Process &amp; Governance</h3><p>Timing, ownership, and handoff failures — late submissions, missed re-runs, mapping drift between systems.</p></div>
+  </div>
+</section>
+
+<section id="resilience">
+  <div class="section-head">
+    <p class="eyebrow">05 · Fail-safe</p>
+    <h2>What happens when something breaks</h2>
+    <p>The swarm is designed around failure, not the happy path. Every degradation has a defined behavior — nothing hangs, nothing silently acts on bad evidence.</p>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <tr><th>Failure</th><th>Behavior</th></tr>
+      <tr><td>Preferred model unservable (host memory pressure)</td><td>A config-driven <b>fallback chain</b> tries progressively smaller models, logs the degradation, and remembers what worked. Verified live: a 70B-parameter model unavailable, degraded to a 3B model, still produced a valid result.</td></tr>
+      <tr><td>Model host down / repeated failures</td><td><b>Per-model circuit breakers</b> so one dead model can't stall every task; the result degrades to zero confidence → escalation.</td></tr>
+      <tr><td>Small model emits malformed structured output</td><td><b>Schema-constrained decoding</b> forces valid structure even from a small fallback model, plus validation and one repair-retry.</td></tr>
+      <tr><td>Tool / integration error</td><td>Recorded in the result's evidence; confidence penalized; the decision and failure are audited.</td></tr>
+      <tr><td>Agent raises an exception</td><td>Isolated to that one task — becomes an error result routed to escalation; the rest of the fan-out is unaffected.</td></tr>
+      <tr><td>Novel / off-taxonomy cause</td><td>Confidence capped below the copilot band → always escalates to a human; logged to the retraining feed.</td></tr>
+      <tr><td>Unattended writes</td><td>All external writes are dry-run until explicitly enabled; even autonomous actions leave systems of record untouched by default.</td></tr>
+      <tr><td>Tampered history</td><td>Hash-chained audit log — any edit breaks the chain, caught on verification.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="scale">
+  <div class="section-head">
+    <p class="eyebrow">06 · Scale</p>
+    <h2>When the data is in the millions</h2>
+    <p>The core principle: <strong>LLMs are the reasoning layer, never the data-processing layer.</strong> No raw rows ever enter a prompt — so LLM cost and latency stay flat no matter how large the source data grows.</p>
+  </div>
+  <pre style="border-left-color:var(--good)">
+millions of rows  →  deterministic aggregation  →  KB-sized evidence  →  LLM
+   <span class="c">(warehouse / API)     (SQL, z-scores, Erlang-C)     (top-k, capped)    (1–2 calls)</span></pre>
+  <p style="color:var(--ink-2); font-size:14px; max-width:70ch; margin-top:16px">
+    A diagnostic prompt carries only a few KB of <em>aggregated</em> evidence — and that stays the same whether the source was 10K rows or 100M, because aggregation happens in code, before the model.
+  </p>
+  <div class="tblwrap" style="margin-top:20px">
+    <table>
+      <tr><th>Layer</th><th>Small scale</th><th>Millions+</th></tr>
+      <tr><td>Aggregation</td><td>In-agent stats over pulls</td><td>Pushed down to a warehouse / async analytics jobs</td></tr>
+      <tr><td>Detection</td><td>Threshold checks in code</td><td>Same math in a stream processor over live events — zero tokens per million events</td></tr>
+      <tr><td>Classification</td><td>LLM over the taxonomy</td><td>A trained classifier scores causes in milliseconds; the LLM writes the narrative only — call count per case stays 1</td></tr>
+      <tr><td>Vector memory</td><td>In-process cosine scan</td><td>An ANN-indexed vector database</td></tr>
+      <tr><td>Stores &amp; workers</td><td>Single-node store, one process/trigger</td><td>A durable store · N stateless workers behind a queue</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="tech">
+  <div class="section-head">
+    <p class="eyebrow">07 · Stack</p>
+    <h2>What it runs on</h2>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <tr><th>Layer</th><th>Approach</th></tr>
+      <tr><td>Orchestration</td><td>A graph-based agent framework — parallel fan-out, a barrier before cross-cutting agents, a confidence gate</td></tr>
+      <tr><td>Language models</td><td>Self-hosted LLM endpoint with tiered models by task cost/criticality, plus a fallback chain for resilience</td></tr>
+      <tr><td>Classification</td><td>LLM over an encoded taxonomy today; a trained classifier is the natural next step, with the LLM kept for narrative</td></tr>
+      <tr><td>Integrations</td><td>A tool-connector interface wrapping the systems of record (contact-center analytics, workforce management, ticketing, CRM)</td></tr>
+      <tr><td>Memory</td><td>A shared blackboard for cross-agent state, a vector store for precedent, and a configurable taxonomy store</td></tr>
+      <tr><td>Governance</td><td>Hash-chained audit log, human approval queue, retraining feedback loop</td></tr>
+      <tr><td>Runtime</td><td>Python, a modern agent-graph framework, and a fully offline test suite (27 tests)</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>Agent Swarm for Workforce Management Operations · architecture case study</footer>
+
+</div>

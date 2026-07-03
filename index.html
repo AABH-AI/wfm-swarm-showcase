@@ -72,12 +72,22 @@
   .band.auto { border-top: 3px solid var(--good); } .band.auto .range { color: var(--good); }
   .band.co { border-top: 3px solid var(--warn); } .band.co .range { color: var(--warn); }
   .band.esc { border-top: 3px solid var(--crit); } .band.esc .range { color: var(--crit); }
-  .steps { counter-reset: step; display: grid; gap: 0; border: 1px solid var(--line); background: var(--panel); }
-  .step { display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .step:last-child { border-bottom: 0; }
-  .step::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-family: var(--mono); font-size: 22px; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .step h3 { font-size: 14px; }
-  .step p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .steps { counter-reset: step; border: 1px solid var(--line); background: var(--panel); border-radius: 3px; overflow: hidden; }
+  .steps-layer {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); padding: 9px 18px; border-bottom: 1px solid var(--line);
+  }
+  .steps-layer:not(:first-child) { border-top: 1px solid var(--line); }
+  .step { display: grid; grid-template-columns: 44px 1fr; align-items: start; gap: 16px; padding: 16px 18px; border-bottom: 1px solid var(--line); transition: background-color .15s ease; }
+  .steps > *:last-child { border-bottom: 0; }
+  .step:hover { background: var(--panel-2); }
+  .step::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    font-family: var(--mono); font-size: 20px; font-weight: 600; line-height: 1.3;
+    color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  }
+  .step-body h3 { font-size: 14px; font-weight: 600; }
+  .step-body p { margin: 5px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; max-width: 60ch; }
   .taxgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 760px) { .taxgrid { grid-template-columns: 1fr; } }
   .tax { border: 1px solid var(--line); background: var(--panel); padding: 14px 16px; }
@@ -167,17 +177,22 @@
   <div class="section-head">
     <p class="eyebrow">03 · Workflow</p>
     <h2>Breach to closed loop in eight steps</h2>
-    <p>The diagnostic data flow, as implemented. Steps 1–2 are the trigger layer; 3–4 the evidence and classification layers; 5–8 routing, narrative, logging, and learning.</p>
+    <p>The diagnostic data flow, as implemented — from the first threshold crossing to the evidence that trains tomorrow's classifier.</p>
   </div>
   <div class="steps">
-    <div class="step"><h3>Monitor</h3><p>Continuous KPI watch against per-domain thresholds.</p></div>
-    <div class="step"><h3>Detect</h3><p>A threshold breach becomes a trigger with a trace ID; breach details are audited before any work starts.</p></div>
-    <div class="step"><h3>Collect</h3><p>Domain agents pull evidence from every connected system in parallel and publish to the blackboard.</p></div>
-    <div class="step"><h3>Classify</h3><p>The root-cause agent scores the evidence against the configured knowledge base and ranks the top candidates with cited evidence.</p></div>
-    <div class="step"><h3>Route</h3><p>The confidence gate sends the result down the autonomous, copilot, or escalation path.</p></div>
-    <div class="step"><h3>Generate</h3><p>Structured narrative: breach summary, top cause, supporting causes, and the pre-approved corrective action.</p></div>
-    <div class="step"><h3>Log</h3><p>A tracking ticket is created with the full package; the decision and evidence land in the tamper-evident audit log.</p></div>
-    <div class="step"><h3>Close the loop</h3><p>Human confirmation is appended to a retraining feed; each case is stored as vector-searchable precedent for the next one.</p></div>
+    <p class="steps-layer">Layer 1 · Trigger</p>
+    <div class="step"><div class="step-body"><h3>Monitor</h3><p>Continuous KPI watch against per-domain thresholds.</p></div></div>
+    <div class="step"><div class="step-body"><h3>Detect</h3><p>A threshold breach becomes a trigger with a trace ID; breach details are audited before any work starts.</p></div></div>
+
+    <p class="steps-layer">Layer 2 · Evidence &amp; classification</p>
+    <div class="step"><div class="step-body"><h3>Collect</h3><p>Domain agents pull evidence from every connected system in parallel and publish to the blackboard.</p></div></div>
+    <div class="step"><div class="step-body"><h3>Classify</h3><p>The root-cause agent scores the evidence against the configured knowledge base and ranks the top candidates with cited evidence.</p></div></div>
+
+    <p class="steps-layer">Layer 3 · Routing, narrative &amp; learning</p>
+    <div class="step"><div class="step-body"><h3>Route</h3><p>The confidence gate sends the result down the autonomous, copilot, or escalation path.</p></div></div>
+    <div class="step"><div class="step-body"><h3>Generate</h3><p>Structured narrative: breach summary, top cause, supporting causes, and the pre-approved corrective action.</p></div></div>
+    <div class="step"><div class="step-body"><h3>Log</h3><p>A tracking ticket is created with the full package; the decision and evidence land in the tamper-evident audit log.</p></div></div>
+    <div class="step"><div class="step-body"><h3>Close the loop</h3><p>Human confirmation is appended to a retraining feed; each case is stored as vector-searchable precedent for the next one.</p></div></div>
   </div>
 </section>
 

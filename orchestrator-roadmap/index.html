@@ -8,6 +8,7 @@
     --good: #1f6e45; --good-soft: #e9f4ee;
     --warn: #91650c; --warn-soft: #faf1de;
     --crit: #8a2f2a; --crit-soft: #f7e9e7;
+    --llm: #6a4fb3; --llm-soft: #f1ecf9;
     --serif: Georgia, "Times New Roman", "Segoe UI", serif;
     --sans: "Segoe UI", Arial, Helvetica, sans-serif;
     --mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
@@ -137,6 +138,11 @@
 
   footer { border-top: 1px solid var(--line); padding: 20px 0 40px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
   .back { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-decoration: none; }
+
+  /* diagrams */
+  .diagram-wrap { border: 1px solid var(--line); overflow-x: auto; background: var(--panel); }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; min-width: 900px; }
+  .diagram-cap { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
 </style>
 
 <input type="radio" name="tab" id="t1" class="tabinput" checked>
@@ -183,120 +189,191 @@
   <div class="section-head">
     <p class="eyebrow">01 · Agents &amp; Architecture</p>
     <h2>Six components, one narrow job each</h2>
-    <p class="dek">The orchestrator is deliberately not where the intelligence lives — that's the domain agents' job. Its six components exist to make sure the right agent handles the right work, with the right level of trust, on the record.</p>
+    <p class="dek">The orchestrator is deliberately not where the intelligence lives — that's the domain agents' job. It exists to route, score, resolve, execute, record, and remember.</p>
   </div>
-  <div class="agent-list">
-    <div class="agent">
-      <div class="who"><span class="no">01</span></div>
-      <div>
-        <h3>Trigger Router / Ingress</h3>
-        <p class="role">Single entry point</p>
-        <p class="body">The single entry point for everything the system reacts to. Four distinct trigger types arrive here: a scheduled job ticking over, an event arriving from a message bus, a monitored metric crossing a threshold, or an analyst making an on-demand request. The router authenticates the caller, normalizes whatever shape the payload arrives in into one canonical envelope, and classifies both what kind of work this is and how urgent it is — including whether it needs to bypass everything else via the real-time fast path.</p>
-        <div class="handles"><span>Authentication &amp; validation</span><span>Payload normalization</span><span>Intent &amp; priority classification</span><span>Fast-path detection</span></div>
-      </div>
-    </div>
-    <div class="agent">
-      <div class="who"><span class="no">02</span></div>
-      <div>
-        <h3>Confidence Decision Engine</h3>
-        <p class="role">Trust scoring</p>
-        <p class="body">Every proposed action a domain agent produces is scored here before it's allowed to do anything. The score isn't just the model's own self-assessment — it factors in how fresh and complete the underlying data was, how accurate this use case has historically been, and how far the result deviates from what a corrective-action playbook would expect. That number decides which of three tiers the action lands in: confidently correct enough to run on its own, good enough to recommend but not to trust blindly, or uncertain enough that a person needs to look first.</p>
-        <div class="handles"><span>Evidence-weighted scoring</span><span>Three-tier autonomy routing</span><span>Threshold calibration over time</span></div>
-      </div>
-    </div>
-    <div class="agent">
-      <div class="who"><span class="no">03</span></div>
-      <div>
-        <h3>Agent &amp; Tool Registry</h3>
-        <p class="role">Resolution &amp; scope</p>
-        <p class="body">A living catalog of every domain agent, which use cases each one owns, and which external tools each is allowed to call. When the router hands off a classified trigger, the registry resolves it to the right agent — or agents — and to the specific, scoped set of tools they're permitted to use for this task. Read-only access is enforced right here, at resolution time, as a second line of defense alongside whatever the network gateway already enforces.</p>
-        <div class="handles"><span>Agent / use-case catalog</span><span>Trigger-to-agent resolution</span><span>Tool-scope enforcement</span></div>
-      </div>
-    </div>
-    <div class="agent">
-      <div class="who"><span class="no">04</span></div>
-      <div>
-        <h3>State / Workflow Manager</h3>
-        <p class="role">Execution &amp; resilience</p>
-        <p class="body">Every workflow the orchestrator runs is represented as a graph — nodes are agent or tool calls, edges are the control flow between them — with state that survives beyond any single request. If a step fails, it retries with backoff; if it hangs, it times out; if a domain agent is unavailable, the workflow degrades gracefully rather than failing outright. If the orchestrator itself restarts mid-workflow, execution resumes from where it left off.</p>
-        <div class="handles"><span>Graph-based execution</span><span>Retries &amp; timeouts</span><span>Durable state across restarts</span><span>Graceful degradation</span></div>
-      </div>
-    </div>
-    <div class="agent">
-      <div class="who"><span class="no">05</span></div>
-      <div>
-        <h3>Audit Logger</h3>
-        <p class="role">Governance</p>
-        <p class="body">An append-only record of every decision the system makes: what came in, what confidence score it received, which tier it landed in, what action was taken, what the outcome was, who or what acted, and exactly when. Full coverage of every autonomous and human-approved action is a governance requirement, not an operational nicety — and it's the raw material the learning loop and any root-cause investigation both depend on.</p>
-        <div class="handles"><span>Immutable decision trail</span><span>Full coverage of acted decisions</span><span>Feeds learning &amp; root-cause review</span></div>
-      </div>
-    </div>
-    <div class="agent">
-      <div class="who"><span class="no">06</span></div>
-      <div>
-        <h3>Memory &amp; HITL Interface</h3>
-        <p class="role">Learning &amp; the human layer</p>
-        <p class="body">Two things live here. Memory reads relevant history and corrective-action playbooks into a workflow as it starts, and writes back what actually happened once it finishes, so the same mistake doesn't get made twice. HITL is the human side of the system: a weekly digest for anything that ran on its own, a short-turnaround approval queue for anything needing sign-off first, and a full-context escalation console for anything the system genuinely isn't confident about.</p>
-        <div class="handles"><span>Contextual memory read/write</span><span>Weekly digest</span><span>Approval queue</span><span>Escalation console</span></div>
-      </div>
-    </div>
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1160 700" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="a1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#40495a"/></marker>
+      </defs>
+      <text x="20" y="18" font-size="11" font-weight="700" letter-spacing="1" fill="#6c7686">TRIGGERS</text>
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="20" y="28" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="59" text-anchor="middle">Scheduled</text>
+        <rect x="20" y="96" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="127" text-anchor="middle">Event</text>
+        <rect x="20" y="164" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="195" text-anchor="middle">Threshold</text>
+        <rect x="20" y="232" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="263" text-anchor="middle">Request</text>
+      </g>
+      <path d="M220 154 L255 154" stroke="#40495a" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="260" y="20" width="560" height="330" fill="#f5f6f8" stroke="#1b3a5c" stroke-width="1.5"/>
+      <text x="540" y="45" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1b3a5c" letter-spacing="1">ORCHESTRATOR AGENT</text>
+
+      <g font-size="12" font-weight="600" fill="#12181f">
+        <rect x="280" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="362" y="90" text-anchor="middle">① Trigger</text><text x="362" y="106" text-anchor="middle">Router</text>
+        <rect x="458" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="540" y="90" text-anchor="middle">② Confidence</text><text x="540" y="106" text-anchor="middle">Engine</text>
+        <rect x="636" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="718" y="90" text-anchor="middle">③ Agent &amp; Tool</text><text x="718" y="106" text-anchor="middle">Registry</text>
+        <rect x="280" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="362" y="168" text-anchor="middle">④ Workflow</text><text x="362" y="184" text-anchor="middle">Manager</text>
+        <rect x="458" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="540" y="168" text-anchor="middle">⑤ Audit</text><text x="540" y="184" text-anchor="middle">Logger</text>
+        <rect x="636" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="718" y="168" text-anchor="middle">⑥ Memory</text><text x="718" y="184" text-anchor="middle">&amp; HITL</text>
+      </g>
+
+      <text x="280" y="232" font-size="11" font-weight="700" letter-spacing="1" fill="#6c7686">DECISION ROUTING</text>
+      <g font-size="11.5" font-weight="700">
+        <rect x="280" y="242" width="165" height="34" fill="#e9f4ee" stroke="#1f6e45"/><text x="362" y="263" text-anchor="middle" fill="#1f6e45">Autonomous</text>
+        <rect x="458" y="242" width="165" height="34" fill="#faf1de" stroke="#91650c"/><text x="540" y="263" text-anchor="middle" fill="#91650c">Copilot</text>
+        <rect x="636" y="242" width="165" height="34" fill="#f7e9e7" stroke="#8a2f2a"/><text x="718" y="263" text-anchor="middle" fill="#8a2f2a">Escalate</text>
+      </g>
+      <text x="540" y="305" text-anchor="middle" font-size="12" font-style="italic" fill="#40495a">Peer mesh: two cross-domain agents (root-cause, executive-summary)</text>
+      <text x="540" y="323" text-anchor="middle" font-size="12" font-style="italic" fill="#40495a">hold standing read access across every domain agent's output.</text>
+
+      <path d="M820 185 L855 185" stroke="#40495a" stroke-width="1.6" marker-end="url(#a1)"/>
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="860" y="20" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="51" text-anchor="middle">Forecast</text>
+        <rect x="860" y="90" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="121" text-anchor="middle">Capacity</text>
+        <rect x="860" y="160" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="191" text-anchor="middle">Scheduling</text>
+        <rect x="860" y="230" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="261" text-anchor="middle">Real-Time Adherence</text>
+        <rect x="860" y="300" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="331" text-anchor="middle">Reporting</text>
+        <rect x="860" y="390" width="280" height="52" fill="#fff" stroke="#93701f" stroke-dasharray="5 3"/><text x="1000" y="421" text-anchor="middle" fill="#93701f">Root-Cause (cross-domain)</text>
+        <rect x="860" y="460" width="280" height="52" fill="#fff" stroke="#93701f" stroke-dasharray="5 3"/><text x="1000" y="491" text-anchor="middle" fill="#93701f">Executive Summary (cross-domain)</text>
+      </g>
+    </svg>
   </div>
+  <p class="diagram-cap">Solid boxes = the five domain agents, each owning its own use cases. Dashed gold boxes = the two cross-domain agents — the only ones with standing peer-read access across all five.</p>
 </section>
 
 <section id="p3" class="panel">
   <div class="section-head">
     <p class="eyebrow">02 · How It Works</p>
-    <h2>How a single request actually moves through the system</h2>
-    <p class="dek">This is the mechanism, end to end — including the one deliberate shortcut (the real-time fast path) and the three-way fork every other result goes through before anything is allowed to happen.</p>
+    <h2>How a single request moves through the system</h2>
+    <p class="dek">Every box is tagged by what actually computes it — deterministic code, one LLM call, or a full agentic loop. That distinction is the point of this diagram.</p>
   </div>
 
-  <div class="flow">
-    <div class="fstep">
-      <div class="fno">1</div>
-      <div><h4>A trigger arrives</h4><p>A scheduled tick, a bus event, a threshold breach, or a direct request — all four land at the same ingress.</p></div>
-    </div>
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1160 1160" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="b1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#40495a"/></marker>
+        <marker id="b2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#93701f"/></marker>
+      </defs>
 
-    <div class="fbranch">
-      <p class="lbl">Real-time check</p>
-      <p>If this trigger belongs to one of the handful of use cases designated for the real-time fast path, the flow <strong>short-circuits here entirely</strong>: the responsible domain agent acts immediately, and the orchestrator is only notified afterward, asynchronously — purely so the action still gets audited. Everything else continues below.</p>
-    </div>
+      <!-- legend -->
+      <g font-size="12.5" font-weight="600">
+        <rect x="20" y="8" width="16" height="16" fill="#1b3a5c"/><text x="42" y="21" fill="#40495a">Deterministic / Math</text>
+        <rect x="255" y="8" width="16" height="16" fill="#6a4fb3"/><text x="277" y="21" fill="#40495a">Single LLM Call</text>
+        <rect x="440" y="8" width="16" height="16" fill="#93701f"/><text x="462" y="21" fill="#40495a">Agentic (multi-step reasoning)</text>
+      </g>
 
-    <div class="fstep">
-      <div class="fno">2</div>
-      <div><h4>Ingress classifies</h4><p>Authenticates, normalizes the payload, and classifies both the intent and the priority of the request.</p></div>
-    </div>
-    <div class="fstep">
-      <div class="fno">3</div>
-      <div><h4>Registry resolves</h4><p>Maps the classified trigger to the right domain agent(s) and the tool scopes they're allowed to use for this task.</p></div>
-    </div>
-    <div class="fstep">
-      <div class="fno">4</div>
-      <div><h4>Workflow instantiates</h4><p>The graph for this run is created and relevant memory/context is loaded before execution starts.</p></div>
-    </div>
-    <div class="fstep">
-      <div class="fno">5</div>
-      <div><h4>The domain agent executes</h4><p>Calls systems of record through scoped, read-only tool access, runs whatever model inference the task needs, and produces its output — a forecast, a plan, an alert, or a recommendation.</p></div>
-    </div>
-    <div class="fstep">
-      <div class="fno">6</div>
-      <div><h4>Confidence scores the result</h4><p>The proposed action is scored and assigned to one of three tiers.</p></div>
-    </div>
+      <!-- trigger row -->
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="20" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="150" y="97" text-anchor="middle">Scheduled</text>
+        <rect x="300" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="430" y="97" text-anchor="middle">Event</text>
+        <rect x="580" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="710" y="97" text-anchor="middle">Threshold</text>
+        <rect x="860" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="990" y="97" text-anchor="middle">Request</text>
+      </g>
+      <path d="M580 120 L580 155" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
 
-    <div class="routegrid">
-      <div class="route auto"><span class="tag">High confidence</span><h4>Autonomous</h4><p>Executes immediately. Shows up in the weekly digest for after-the-fact review.</p></div>
-      <div class="route co"><span class="tag">Medium confidence</span><h4>Copilot</h4><p>Waits in the approval queue. A person confirms or rejects before it executes.</p></div>
-      <div class="route esc"><span class="tag">Low confidence</span><h4>Escalate</h4><p>Routes to a person with full context. Does not execute on its own.</p></div>
-    </div>
+      <!-- diamond -->
+      <polygon points="580,158 700,222 580,286 460,222" fill="#f5f6f8" stroke="#6c7686" stroke-width="1.4"/>
+      <text x="580" y="217" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Real-time</text>
+      <text x="580" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">fast path?</text>
 
-    <div class="fstep">
-      <div class="fno">7</div>
-      <div><h4>Audit Logger writes the trail</h4><p>Every run gets a complete record — inputs, score, tier, action, outcome — regardless of which path it took above.</p></div>
-    </div>
-    <div class="fstep" style="border-bottom:0">
-      <div class="fno">8</div>
-      <div><h4>Memory closes the loop</h4><p>The outcome is stored, so future confidence scoring and routing get a little better every time.</p></div>
-    </div>
+      <!-- fast path branch -->
+      <text x="712" y="215" font-size="11.5" font-weight="700" fill="#93701f">YES</text>
+      <path d="M700 222 L775 222" stroke="#93701f" stroke-width="1.6" marker-end="url(#b2)"/>
+      <rect x="780" y="192" width="360" height="60" fill="#f7f0df" stroke="#93701f" stroke-width="1.4"/>
+      <text x="960" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Fast path — agent acts now</text>
+      <text x="960" y="235" text-anchor="middle" font-size="11.5" fill="#40495a">Bypasses everything below. Audited async.</text>
+      <path d="M1140 252 L1140 979 L835 979" stroke="#93701f" stroke-width="1.4" fill="none" stroke-dasharray="6 4" marker-end="url(#b1)"/>
+      <text x="1145" y="600" font-size="10.5" font-style="italic" fill="#93701f" transform="rotate(90 1145 600)">async audit</text>
+
+      <text x="588" y="300" font-size="11.5" font-weight="700" fill="#40495a">NO</text>
+      <path d="M580 286 L580 315" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- plumbing -->
+      <rect x="330" y="318" width="500" height="96" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="340" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Orchestration Plumbing</text>
+      <g font-size="11" font-weight="600" fill="#12181f">
+        <rect x="350" y="352" width="145" height="46" fill="#fff" stroke="#c7d2e0"/><text x="422" y="372" text-anchor="middle">Ingress</text><text x="422" y="386" text-anchor="middle">classifies</text>
+        <rect x="507" y="352" width="145" height="46" fill="#fff" stroke="#c7d2e0"/><text x="580" y="372" text-anchor="middle">Registry</text><text x="580" y="386" text-anchor="middle">resolves</text>
+        <rect x="664" y="352" width="146" height="46" fill="#fff" stroke="#c7d2e0"/><text x="737" y="372" text-anchor="middle">Workflow</text><text x="737" y="386" text-anchor="middle">instantiates</text>
+      </g>
+      <path d="M580 414 L580 440" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- agent execution: 3-way classification -->
+      <text x="580" y="462" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">The domain agent executes — the computation type depends on the use case</text>
+      <g font-size="12.5">
+        <rect x="20" y="478" width="350" height="185" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+        <text x="195" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Deterministic / Math</text>
+        <text x="40" y="532" fill="#40495a">Staffing math (Erlang-C),</text>
+        <text x="40" y="551" fill="#40495a">z-score anomaly detection,</text>
+        <text x="40" y="570" fill="#40495a">weekday-seasonal forecasting.</text>
+        <text x="40" y="598" fill="#6c7686" font-style="italic">No model call. Pure code —</text>
+        <text x="40" y="616" fill="#6c7686" font-style="italic">same input always gives the</text>
+        <text x="40" y="634" fill="#6c7686" font-style="italic">same output.</text>
+
+        <rect x="405" y="478" width="350" height="185" fill="#f1ecf9" stroke="#6a4fb3" stroke-width="1.4"/>
+        <text x="580" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Single LLM Call</text>
+        <text x="425" y="532" fill="#40495a">Forecast commentary,</text>
+        <text x="425" y="551" fill="#40495a">executive-summary narrative.</text>
+        <text x="425" y="598" fill="#6c7686" font-style="italic">One prompt in, one completion</text>
+        <text x="425" y="616" fill="#6c7686" font-style="italic">out. No tool use, no further</text>
+        <text x="425" y="634" fill="#6c7686" font-style="italic">reasoning steps.</text>
+
+        <rect x="790" y="478" width="350" height="185" fill="#f7f0df" stroke="#93701f" stroke-width="1.4"/>
+        <text x="965" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Agentic</text>
+        <text x="810" y="532" fill="#40495a">Root-cause analysis: gathers</text>
+        <text x="810" y="551" fill="#40495a">evidence across domains, searches</text>
+        <text x="810" y="570" fill="#40495a">memory, classifies, decides.</text>
+        <text x="810" y="598" fill="#6c7686" font-style="italic">Multi-step reasoning — the</text>
+        <text x="810" y="616" fill="#6c7686" font-style="italic">model chooses what to look at</text>
+        <text x="810" y="634" fill="#6c7686" font-style="italic">next, not just what to say.</text>
+      </g>
+      <path d="M195 663 L580 700" stroke="#1b3a5c" stroke-width="1.3" fill="none"/>
+      <path d="M580 663 L580 700" stroke="#40495a" stroke-width="1.6"/>
+      <path d="M965 663 L580 700" stroke="#93701f" stroke-width="1.3" fill="none"/>
+      <path d="M580 700 L580 715" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- confidence engine -->
+      <rect x="330" y="718" width="500" height="70" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="745" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Confidence Engine</text>
+      <text x="580" y="763" text-anchor="middle" font-size="11.5" fill="#40495a">Scoring formula over evidence signals — deterministic</text>
+      <path d="M580 788 L580 815" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- 3-way routing -->
+      <g font-size="12.5" font-weight="700">
+        <rect x="20" y="818" width="350" height="80" fill="#e9f4ee" stroke="#1f6e45" stroke-width="1.4"/>
+        <text x="195" y="844" text-anchor="middle" fill="#1f6e45">Autonomous</text>
+        <text x="195" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">≥ 85% — executes now</text>
+        <rect x="405" y="818" width="350" height="80" fill="#faf1de" stroke="#91650c" stroke-width="1.4"/>
+        <text x="580" y="844" text-anchor="middle" fill="#91650c">Copilot</text>
+        <text x="580" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">60–85% — approval queue</text>
+        <rect x="790" y="818" width="350" height="80" fill="#f7e9e7" stroke="#8a2f2a" stroke-width="1.4"/>
+        <text x="965" y="844" text-anchor="middle" fill="#8a2f2a">Escalate</text>
+        <text x="965" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">&lt; 60% — human console</text>
+      </g>
+      <text x="580" y="912" text-anchor="middle" font-size="11.5" font-style="italic" fill="#6c7686">threshold comparison — deterministic, not a model call</text>
+
+      <path d="M195 898 L580 930" stroke="#1f6e45" stroke-width="1.3" fill="none"/>
+      <path d="M580 898 L580 930" stroke="#40495a" stroke-width="1.6"/>
+      <path d="M965 898 L580 930" stroke="#8a2f2a" stroke-width="1.3" fill="none"/>
+      <path d="M580 930 L580 945" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- audit -->
+      <rect x="330" y="948" width="500" height="62" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="984" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Audit Logger — writes the complete trail</text>
+      <path d="M580 1010 L580 1035" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- memory -->
+      <g font-size="12.5">
+        <rect x="340" y="1038" width="240" height="80" fill="#f1ecf9" stroke="#6a4fb3" stroke-width="1.4"/>
+        <text x="460" y="1064" text-anchor="middle" font-weight="700" fill="#12181f">Embed outcome</text>
+        <text x="460" y="1084" text-anchor="middle" font-size="11" fill="#40495a">embedding model call</text>
+        <rect x="600" y="1038" width="240" height="80" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+        <text x="720" y="1064" text-anchor="middle" font-weight="700" fill="#12181f">Store &amp; retrieve</text>
+        <text x="720" y="1084" text-anchor="middle" font-size="11" fill="#40495a">cosine-similarity search</text>
+      </g>
+    </svg>
   </div>
+  <p class="diagram-cap">The gold "fast path" and "agentic" boxes are the only two places autonomy actually happens. Everything else on this page is a rule, a formula, or a lookup.</p>
 </section>
 
 <section id="p4" class="panel">

@@ -143,6 +143,29 @@
   .diagram-wrap { border: 1px solid var(--line); overflow-x: auto; background: var(--panel); }
   .diagram-wrap svg { display: block; width: 100%; height: auto; min-width: 900px; }
   .diagram-cap { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
+
+  .coverage { margin-top: 34px; border: 1px solid var(--line); }
+  .coverage-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .coverage-head h3 { font-size: 15px; font-weight: 700; }
+  .coverage-count { font-family: var(--serif); font-size: 26px; font-weight: 700; color: var(--good); font-variant-numeric: tabular-nums; }
+  .coverage-count small { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--ink-3); }
+  .coverage-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 900px) { .coverage-grid { grid-template-columns: repeat(2, 1fr); } }
+  .cov { padding: 16px 18px; border-right: 1px solid var(--line); border-top: 1px solid var(--line); }
+  .cov:nth-child(5n) { border-right: 0; }
+  @media (max-width: 900px) { .cov:nth-child(2n) { border-right: 0; } .cov:nth-child(5n) { border-right: 1px solid var(--line); } }
+  .cov h4 { font-size: 12.5px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; font-family: var(--mono); }
+  .cov ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  .cov li { font-size: 13px; color: var(--ink-2); padding: 3px 0 3px 14px; position: relative; }
+  .cov li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; font-size: 11px; }
+  .cov-cross { background: var(--gold-soft); }
+  .cov-cross h4 { color: var(--gold); }
+
+  /* animated live trace (tab 3) */
+  .livebadge { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .livedot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: livepulse 1.6s ease-in-out infinite; }
+  @keyframes livepulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+  @media (prefers-reduced-motion: reduce) { .livedot { animation: none; } }
 </style>
 
 <input type="radio" name="tab" id="t1" class="tabinput" checked>
@@ -239,6 +262,20 @@
     </svg>
   </div>
   <p class="diagram-cap">Solid boxes = the five domain agents, each owning its own use cases. Dashed gold boxes = the two cross-domain agents — the only ones with standing peer-read access across all five.</p>
+
+  <div class="coverage">
+    <div class="coverage-head">
+      <h3>Full coverage — every use case has an owner</h3>
+      <span class="coverage-count">15<small>/15</small></span>
+    </div>
+    <div class="coverage-grid">
+      <div class="cov"><h4>Forecast</h4><ul><li>Volume forecasting</li><li>Anomaly detection</li><li>Event-impact modeling</li><li>Forecast narrative</li></ul></div>
+      <div class="cov"><h4>Capacity</h4><ul><li>Handle-time calibration</li><li>Headcount planning</li><li>Shrinkage trending</li><li>Hiring recommendation</li></ul></div>
+      <div class="cov"><h4>Scheduling</h4><ul><li>Schedule optimization</li><li>Intraday re-optimization</li></ul></div>
+      <div class="cov"><h4>Real-Time Adherence</h4><ul><li>Live alerting</li><li>SL-breach prediction</li><li>Ticketing auto-triage</li></ul></div>
+      <div class="cov cov-cross"><h4>Cross-Domain</h4><ul><li>Root-cause analysis</li><li>Executive summary</li></ul></div>
+    </div>
+  </div>
 </section>
 
 <section id="p3" class="panel">
@@ -246,6 +283,7 @@
     <p class="eyebrow">02 · How It Works</p>
     <h2>How a single request moves through the system</h2>
     <p class="dek">Every box is tagged by what actually computes it — deterministic code, one LLM call, or a full agentic loop. That distinction is the point of this diagram.</p>
+    <p class="livebadge"><span class="livedot"></span>Live trace — watch a request move through the system below</p>
   </div>
 
   <div class="diagram-wrap">
@@ -253,6 +291,10 @@
       <defs>
         <marker id="b1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#40495a"/></marker>
         <marker id="b2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#93701f"/></marker>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
 
       <!-- legend -->
@@ -371,9 +413,53 @@
         <text x="720" y="1064" text-anchor="middle" font-weight="700" fill="#12181f">Store &amp; retrieve</text>
         <text x="720" y="1084" text-anchor="middle" font-size="11" fill="#40495a">cosine-similarity search</text>
       </g>
+
+      <!-- ============ LIVE TRACE: animated request moving through the mesh ============ -->
+      <!-- Synced glow-pulses: each overlay lights up the instant the traveling dot reaches it -->
+      <g pointer-events="none">
+        <rect x="580" y="64" width="260" height="56" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.009;0.034;0.064;1" values="0;0;1;0;0"/>
+        </rect>
+        <polygon points="580,158 700,222 580,286 460,222" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.146;0.171;0.201;1" values="0;0;1;0;0"/>
+        </polygon>
+        <rect x="330" y="318" width="500" height="96" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.297;0.322;0.352;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="405" y="478" width="350" height="185" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.512;0.537;0.567;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="330" y="718" width="500" height="70" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.705;0.730;0.760;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="405" y="818" width="350" height="80" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.815;0.840;0.870;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="330" y="948" width="500" height="62" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.942;0.967;0.986;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="340" y="1038" width="240" height="80" fill="none" stroke="#6a4fb3" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.95;0.99;1" values="0;0;1;1"/>
+        </rect>
+        <rect x="600" y="1038" width="240" height="80" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.95;0.99;1" values="0;0;1;1"/>
+        </rect>
+      </g>
+
+      <!-- the traveling request: a lead pulse with two trailing echoes -->
+      <circle r="9" fill="#93701f" filter="url(#glow)">
+        <animateMotion dur="14s" repeatCount="indefinite" path="M580,60 L580,1010"/>
+        <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.03;0.93;1" values="0;1;1;0"/>
+      </circle>
+      <circle r="6" fill="#93701f" opacity="0.45">
+        <animateMotion dur="14s" repeatCount="indefinite" begin="0.15s" path="M580,60 L580,1010"/>
+      </circle>
+      <circle r="4" fill="#93701f" opacity="0.25">
+        <animateMotion dur="14s" repeatCount="indefinite" begin="0.3s" path="M580,60 L580,1010"/>
+      </circle>
     </svg>
   </div>
-  <p class="diagram-cap">The gold "fast path" and "agentic" boxes are the only two places autonomy actually happens. Everything else on this page is a rule, a formula, or a lookup.</p>
+  <p class="diagram-cap">The gold "fast path" and "agentic" boxes are the only two places autonomy actually happens. Everything else on this page is a rule, a formula, or a lookup. The glowing pulse above traces one request end to end, in real time.</p>
 </section>
 
 <section id="p4" class="panel">

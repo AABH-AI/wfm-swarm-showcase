@@ -1,0 +1,5 @@
+# Local-only files that must NEVER be committed or deployed — full client-specific
+# detail (naming the client, unsanitized terminology) for local reference only.
+# Naming convention: anything ending in "-Local.html" is local-only by design.
+*-Local.html
+*-local.html

@@ -1,0 +1,256 @@
+<title>Orchestrator Agent — Build Roadmap &amp; Delivery Estimate</title>
+<style>
+  :root {
+    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
+    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
+    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
+    --good: #2e7d4f; --good-soft: #e2f1e8;
+    --warn: #a06e10; --warn-soft: #f6ecd7;
+    --crit: #b0453a; --crit-soft: #f7e5e2;
+    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+    --display: Bahnschrift, "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
+      --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
+      --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
+      --good: #57c186; --good-soft: #10301f;
+      --warn: #e0ae4a; --warn-soft: #33290f;
+      --crit: #e08273; --crit-soft: #38201c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
+    --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
+    --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
+    --good: #57c186; --good-soft: #10301f;
+    --warn: #e0ae4a; --warn-soft: #33290f;
+    --crit: #e08273; --crit-soft: #38201c;
+  }
+  :root[data-theme="light"] {
+    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
+    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
+    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
+    --good: #2e7d4f; --good-soft: #e2f1e8;
+    --warn: #a06e10; --warn-soft: #f6ecd7;
+    --crit: #b0453a; --crit-soft: #f7e5e2;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; margin: 0; padding: 0 20px 80px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  a { color: var(--accent); }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  section { margin-top: 58px; }
+  .section-head { border-top: 2px solid var(--ink); padding-top: 14px; margin-bottom: 22px; }
+  .section-head h2 { font-size: 23px; font-weight: 600; }
+  .section-head p { color: var(--ink-2); max-width: 70ch; margin: 8px 0 0; font-size: 14.5px; }
+  header.mast { padding: 44px 0 0; }
+  .back-link { font-family: var(--mono); font-size: 12px; color: var(--ink-3); text-decoration: none; }
+  h1 { font-size: clamp(26px, 4.6vw, 38px); font-weight: 700; letter-spacing: -.01em; margin: 12px 0 12px; }
+  .lede { font-size: 16px; color: var(--ink-2); max-width: 66ch; margin: 0 0 22px; }
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
+  .stat { background: var(--panel); padding: 14px 16px; }
+  .stat b { display: block; font-family: var(--display); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--mono); }
+
+  .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 10px; }
+  .node { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 12px 14px; }
+  .node .n { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; }
+  .node h3 { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
+  .node p { margin: 5px 0 0; font-size: 12.5px; color: var(--ink-2); }
+
+  .phase { border: 1px solid var(--line); background: var(--panel); margin-bottom: 14px; }
+  .phase-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 18px; background: var(--panel-2); border-bottom: 1px solid var(--line); border-left: 4px solid var(--accent); }
+  .phase-head .tag { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .phase-head h3 { font-size: 15.5px; font-weight: 600; margin-top: 2px; }
+  .phase-head .weeks { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 3px 11px; border-radius: 999px; white-space: nowrap; }
+  .phase-body { padding: 15px 18px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .phase-body { grid-template-columns: 1fr; } }
+  .phase-body h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-family: var(--mono); margin: 0 0 8px; }
+  .stepul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  .stepul li { font-size: 13.5px; color: var(--ink-2); padding-left: 18px; position: relative; }
+  .stepul li::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); }
+  .exit-box { background: var(--panel-2); border: 1px dashed var(--line); padding: 11px 13px; font-size: 12.5px; color: var(--ink-2); }
+  .exit-box b { color: var(--ink); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 5px; }
+
+  .tblwrap { overflow-x: auto; border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; background: var(--panel); font-size: 13.5px; }
+  th { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-align: left; background: var(--panel-2); }
+  th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  tr.total td { font-weight: 700; background: var(--panel-2); }
+
+  .gantt { display: grid; gap: 9px; margin-top: 18px; }
+  .gantt-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 14px; }
+  .gantt-row .lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; }
+  .gantt-track { position: relative; height: 24px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .gantt-bar { position: absolute; top: 0; bottom: 0; background: var(--accent); display: flex; align-items: center; padding: 0 8px; font-family: var(--mono); font-size: 10.5px; color: var(--accent-ink); font-weight: 700; white-space: nowrap; }
+  .gantt-scale { display: grid; grid-template-columns: 150px 1fr; gap: 14px; }
+  .gantt-scale .axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 12px; margin-top: 16px; }
+  .risk { border: 1px solid var(--line); border-top: 3px solid var(--crit); background: var(--panel); padding: 13px 15px; }
+  .risk h4 { font-size: 13px; font-weight: 600; }
+  .risk p { font-size: 12.5px; color: var(--ink-2); margin: 5px 0 0; }
+
+  footer { margin-top: 60px; border-top: 1px solid var(--line); padding-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .06em; }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <a class="back-link" href="../">&larr; Agent Swarm for Workforce Management Operations</a>
+  <p class="eyebrow" style="margin-top:16px">Companion architecture case study</p>
+  <h1>Orchestrator Agent — from architecture to a working build plan</h1>
+  <p class="lede">A hub-and-spoke orchestrator's six internal components, turned into a phase-by-phase engineering plan and a delivery estimate for a small team. Scope: the orchestrator itself — the domain agents it coordinates are separate workstreams.</p>
+  <div class="statgrid">
+    <div class="stat"><b>6</b><span>internal components</span></div>
+    <div class="stat"><b>5</b><span>build phases</span></div>
+    <div class="stat"><b>2–4</b><span>engineers assumed</span></div>
+    <div class="stat"><b>13–22</b><span>weeks, team-size dependent</span></div>
+  </div>
+</header>
+
+<section id="arch">
+  <div class="section-head">
+    <p class="eyebrow">01 · Architecture</p>
+    <h2>Six components, one hub</h2>
+    <p>The orchestrator does not forecast, schedule, or monitor adherence itself — domain agents do. It routes every trigger, scores confidence, and keeps an immutable trail.</p>
+  </div>
+  <div class="component-grid">
+    <div class="node"><span class="n">1</span><h3>Trigger Router / Ingress</h3><p>Authenticates, normalizes, and classifies every incoming trigger into a canonical envelope.</p></div>
+    <div class="node"><span class="n">2</span><h3>Confidence Decision Engine</h3><p>Scores each proposed action and routes it to autonomous / copilot / escalate.</p></div>
+    <div class="node"><span class="n">3</span><h3>Agent &amp; Tool Registry</h3><p>Resolves a trigger to the right domain agent(s) and the tool scopes they may call.</p></div>
+    <div class="node"><span class="n">4</span><h3>State / Workflow Manager</h3><p>Graph-based execution with retries, timeouts, and durable state across restarts.</p></div>
+    <div class="node"><span class="n">5</span><h3>Audit Logger</h3><p>Immutable record of every decision — full coverage of auto and copilot actions.</p></div>
+    <div class="node"><span class="n">6</span><h3>Memory &amp; HITL Interface</h3><p>Vector-store context and playbooks in; approval queue, digest, and escalation console out.</p></div>
+  </div>
+</section>
+
+<section id="steps">
+  <div class="section-head">
+    <p class="eyebrow">02 · Build steps</p>
+    <h2>Phase-by-phase engineering plan</h2>
+    <p>A foundation phase (decisions and scaffolding) and a hardening phase (calibration and resilience) bracket the three core build phases, each expanded into concrete steps and exit criteria.</p>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 0 · Foundation</span><h3>Decisions and scaffolding</h3></div><span class="weeks">1–2 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Resolve open decisions: event bus, API gateway, and its RBAC/encryption owner</li>
+        <li>Finalize the four canonical contracts as versioned schemas: <code>Trigger</code>, <code>AgentInvocation</code>, <code>AgentResult</code>, <code>Decision</code></li>
+        <li>Stand up base environment: cluster namespace, secrets-vault scaffold, CI/CD, Dev → Test → Prod promotion path</li>
+        <li>Confirm status of the historical-data-platform migration as a tracked external dependency</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P1 when</b>Contracts are frozen v1, environment is provisioned, and the event bus / gateway choices are locked.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 1 · Data foundation &amp; demand</span><h3>Scheduled routing, registry, audit logging</h3></div><span class="weeks">3–5 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Trigger Router: scheduled-trigger path only — auth, validation, canonical envelope</li>
+        <li>Agent &amp; Tool Registry against one external system first (the primary analytics platform) — catalog + resolution logic</li>
+        <li>State/Workflow Manager: graph skeleton, one linear flow, retries + timeouts, durable state across restarts</li>
+        <li>Audit Logger wired end to end from day one — inputs, confidence, tier, outcome</li>
+        <li>Confidence Engine shipped as a fixed-threshold stub (not calibrated yet)</li>
+        <li>Integration milestone: one scheduled forecast trigger runs end to end, dry-run</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P2 when</b>One scheduled trigger runs reliably with a complete audit trail, and the registry correctly resolves against the analytics platform.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 2 · Scheduling &amp; real-time</span><h3>Event-driven routing, fast-path, confidence live</h3></div><span class="weeks">4–6 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Event bus integration for the event-driven trigger type</li>
+        <li>Fast-path bypass for the three real-time use cases: event → domain agent action directly, async audit notification back — needs coordination with the team building those agents</li>
+        <li>Confidence Decision Engine goes live: real evidence-based scoring replacing the fixed stub</li>
+        <li>Registry expands to the ticketing and CRM/forecast-input systems</li>
+        <li>HITL copilot tier: a time-boxed approval queue — queue, approve/reject, replay the approved action</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P3 when</b>Fast-path measured under a minute end to end; confidence engine scoring real evidence, not a fixed threshold.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 3 · Reporting &amp; cross-domain</span><h3>Threshold routing, peer reads, full HITL, learning loop</h3></div><span class="weeks">4–6 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Threshold trigger type support in the Ingress</li>
+        <li>Peer read-access wiring for the cross-domain agents (root-cause and executive-summary) across all domains</li>
+        <li>Memory &amp; HITL completed: vector-store read/write, playbook store, weekly digest, escalation console with full context</li>
+        <li>Learning loop: confirmed outcomes feed back into confidence calibration on a weekly cadence</li>
+        <li>Observability fully wired — every decision logging confidence, inputs, and outcome</li>
+        <li>Validate non-functional targets: uptime, full audit coverage, model-cost budget</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for hardening when</b>All four trigger types are live, all HITL tiers are operational, and the learning loop demonstrably moves confidence calibration.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 4 · Hardening</span><h3>Calibration and resilience before calling it production</h3></div><span class="weeks">2–3 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Calibrate confidence thresholds against accumulated real audit outcomes</li>
+        <li>Resilience testing: orchestrator restart recovery, domain-agent outage survival</li>
+        <li>Security review: read-only scope enforcement, secrets audit, RBAC sign-off</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Calendar note</b>Calibration needs live traffic to accumulate outcomes — bounded by elapsed time, not headcount, so it doesn't compress much with a bigger team.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="eta">
+  <div class="section-head">
+    <p class="eyebrow">03 · Delivery estimate</p>
+    <h2>ETA for a 2–4 person team</h2>
+    <p>Orchestrator scope only. Ranges reflect that some work — decisions, calibration — is bounded by calendar time, not by adding people; team size mainly compresses phases 1–3, where tasks genuinely parallelize across the six components.</p>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <tr><th>Phase</th><th class="num">2 engineers</th><th class="num">3 engineers</th><th class="num">4 engineers</th></tr>
+      <tr><td>Phase 0 · Foundation</td><td class="num">1.5 wks</td><td class="num">1.5 wks</td><td class="num">1.5 wks</td></tr>
+      <tr><td>Phase 1 · Data foundation</td><td class="num">4–5 wks</td><td class="num">3–4 wks</td><td class="num">2.5–3 wks</td></tr>
+      <tr><td>Phase 2 · Scheduling / real-time</td><td class="num">5–6 wks</td><td class="num">4–5 wks</td><td class="num">3–3.5 wks</td></tr>
+      <tr><td>Phase 3 · Reporting / cross-domain</td><td class="num">5.5–6.5 wks</td><td class="num">4–5 wks</td><td class="num">3–3.5 wks</td></tr>
+      <tr><td>Phase 4 · Hardening</td><td class="num">2.5–3 wks</td><td class="num">2.5–3 wks</td><td class="num">2–2.5 wks</td></tr>
+      <tr class="total"><td>Total</td><td class="num">~19–22 wks</td><td class="num">~16–19 wks</td><td class="num">~13–15 wks</td></tr>
+      <tr class="total"><td>≈ months</td><td class="num">~4.5–5.5 mo</td><td class="num">~4–4.5 mo</td><td class="num">~3–3.5 mo</td></tr>
+    </table>
+  </div>
+  <div class="gantt">
+    <div class="gantt-scale"><div></div><div class="axis"><span>Week 0</span><span>5</span><span>10</span><span>15</span><span>20</span></div></div>
+    <div class="gantt-row"><span class="lbl">Foundation</span><div class="gantt-track"><div class="gantt-bar" style="left:0%; width:7%">P0</div></div></div>
+    <div class="gantt-row"><span class="lbl">Data foundation</span><div class="gantt-track"><div class="gantt-bar" style="left:7%; width:22%">P1</div></div></div>
+    <div class="gantt-row"><span class="lbl">Scheduling / real-time</span><div class="gantt-track"><div class="gantt-bar" style="left:29%; width:27%">P2</div></div></div>
+    <div class="gantt-row"><span class="lbl">Reporting / cross-domain</span><div class="gantt-track"><div class="gantt-bar" style="left:56%; width:29%">P3</div></div></div>
+    <div class="gantt-row"><span class="lbl">Hardening</span><div class="gantt-track"><div class="gantt-bar" style="left:85%; width:14%">P4</div></div></div>
+  </div>
+  <p style="font-size:12px; color:var(--ink-3); margin-top:8px">Illustrative timeline for a 2-person team (~21 weeks total, shown sequentially — in practice hardening overlaps the tail of Phase 3).</p>
+</section>
+
+<section id="risks">
+  <div class="section-head">
+    <p class="eyebrow">04 · Risk factors</p>
+    <h2>What could move this — regardless of headcount</h2>
+    <p>The estimate above assumes a clean run. None of these are fixed by adding more engineers.</p>
+  </div>
+  <div class="risk-grid">
+    <div class="risk"><h4>Historical-data-platform migration</h4><p>A hard dependency for the whole mesh. If it slips, phases that depend on real historical data slip with it — an external dependency, not orchestrator dev time.</p></div>
+    <div class="risk"><h4>Open architectural decisions</h4><p>Event bus, API gateway, and RBAC ownership still to be confirmed. Each week these stay open pushes Phase 0 — and everything after it — by a week.</p></div>
+    <div class="risk"><h4>Cross-team dependency on domain agents</h4><p>The fast-path and the peer-mesh reads only work once the domain agents exist. If those teams run behind, the orchestrator's integration milestones wait.</p></div>
+    <div class="risk"><h4>Confidence calibration needs real traffic</h4><p>Calibrating the autonomy thresholds against actual outcomes takes elapsed weeks of live decisions accumulating, not just engineering hours.</p></div>
+  </div>
+</section>
+
+<footer>Orchestrator Agent · build roadmap &amp; delivery estimate · companion case study</footer>
+
+</div>

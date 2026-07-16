@@ -1,141 +1,309 @@
-<title>Orchestrator Agent — Build Roadmap &amp; Delivery Estimate</title>
+<title>Orchestrator Agent — Architecture &amp; Delivery Brief</title>
 <style>
   :root {
-    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
-    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
-    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
-    --good: #2e7d4f; --good-soft: #e2f1e8;
-    --warn: #a06e10; --warn-soft: #f6ecd7;
-    --crit: #b0453a; --crit-soft: #f7e5e2;
-    --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
-    --display: Bahnschrift, "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
-    --body: "Segoe UI", system-ui, -apple-system, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
-      --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
-      --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
-      --good: #57c186; --good-soft: #10301f;
-      --warn: #e0ae4a; --warn-soft: #33290f;
-      --crit: #e08273; --crit-soft: #38201c;
-    }
-  }
-  :root[data-theme="dark"] {
-    --paper: #0f181c; --panel: #16232a; --panel-2: #1c2c34;
-    --ink: #e3edef; --ink-2: #9fb4bb; --ink-3: #6d8189; --line: #26383f;
-    --accent: #46c5d6; --accent-ink: #06272d; --accent-soft: #123239;
-    --good: #57c186; --good-soft: #10301f;
-    --warn: #e0ae4a; --warn-soft: #33290f;
-    --crit: #e08273; --crit-soft: #38201c;
-  }
-  :root[data-theme="light"] {
-    --paper: #f6f8f8; --panel: #ffffff; --panel-2: #eef2f3;
-    --ink: #17262c; --ink-2: #4c6068; --ink-3: #7b8d94; --line: #d7e0e2;
-    --accent: #0f7b8a; --accent-ink: #ffffff; --accent-soft: #e2eff1;
-    --good: #2e7d4f; --good-soft: #e2f1e8;
-    --warn: #a06e10; --warn-soft: #f6ecd7;
-    --crit: #b0453a; --crit-soft: #f7e5e2;
+    --paper: #ffffff; --panel: #ffffff; --panel-2: #f5f6f8; --panel-3: #eceef2;
+    --ink: #12181f; --ink-2: #40495a; --ink-3: #6c7686; --line: #e0e3e9;
+    --accent: #1b3a5c; --accent-soft: #eaf0f6; --accent-ink: #ffffff;
+    --gold: #93701f; --gold-soft: #f7f0df;
+    --good: #1f6e45; --good-soft: #e9f4ee;
+    --warn: #91650c; --warn-soft: #faf1de;
+    --crit: #8a2f2a; --crit-soft: #f7e9e7;
+    --serif: Georgia, "Times New Roman", "Segoe UI", serif;
+    --sans: "Segoe UI", Arial, Helvetica, sans-serif;
+    --mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
-  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; margin: 0; padding: 0 20px 80px; }
-  .wrap { max-width: 1080px; margin: 0 auto; }
-  h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  h1, h2, h3, h4 { font-family: var(--serif); text-wrap: balance; margin: 0; font-weight: 700; }
   a { color: var(--accent); }
-  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
-  section { margin-top: 58px; }
-  .section-head { border-top: 2px solid var(--ink); padding-top: 14px; margin-bottom: 22px; }
-  .section-head h2 { font-size: 23px; font-weight: 600; }
-  .section-head p { color: var(--ink-2); max-width: 70ch; margin: 8px 0 0; font-size: 14.5px; }
-  header.mast { padding: 44px 0 0; }
-  .back-link { font-family: var(--mono); font-size: 12px; color: var(--ink-3); text-decoration: none; }
-  h1 { font-size: clamp(26px, 4.6vw, 38px); font-weight: 700; letter-spacing: -.01em; margin: 12px 0 12px; }
-  .lede { font-size: 16px; color: var(--ink-2); max-width: 66ch; margin: 0 0 22px; }
-  .statgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 24px; }
-  .stat { background: var(--panel); padding: 14px 16px; }
-  .stat b { display: block; font-family: var(--display); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .stat span { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-family: var(--mono); }
+  p { margin: 0; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  code { font-family: var(--mono); font-size: .92em; background: var(--panel-2); padding: 1px 5px; border-radius: 2px; }
 
-  .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 10px; }
-  .node { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent); padding: 12px 14px; }
-  .node .n { font-family: var(--mono); font-size: 11px; color: var(--accent); font-weight: 700; }
-  .node h3 { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
-  .node p { margin: 5px 0 0; font-size: 12.5px; color: var(--ink-2); }
+  /* tab mechanism — CSS-only, no JS */
+  .tabinput { position: absolute; opacity: 0; pointer-events: none; }
+  .panel { display: none; padding: 44px 0 90px; }
+  #t1:checked ~ main #p1,
+  #t2:checked ~ main #p2,
+  #t3:checked ~ main #p3,
+  #t4:checked ~ main #p4,
+  #t5:checked ~ main #p5 { display: block; }
 
-  .phase { border: 1px solid var(--line); background: var(--panel); margin-bottom: 14px; }
-  .phase-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 18px; background: var(--panel-2); border-bottom: 1px solid var(--line); border-left: 4px solid var(--accent); }
-  .phase-head .tag { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
-  .phase-head h3 { font-size: 15.5px; font-weight: 600; margin-top: 2px; }
-  .phase-head .weeks { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--ink); background: var(--panel); border: 1px solid var(--line); padding: 3px 11px; border-radius: 999px; white-space: nowrap; }
-  .phase-body { padding: 15px 18px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  /* top bar */
+  nav.topbar { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  .topbar-inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; padding: 16px 0; }
+  .brand .mark { width: 26px; height: 26px; background: var(--accent); color: #fff; font-family: var(--serif); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .brand b { font-family: var(--serif); font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+  .brand span { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+  .tab { font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--ink-3); text-decoration: none; padding: 20px 14px; border-bottom: 2px solid transparent; cursor: pointer; user-select: none; }
+  .tab:hover { color: var(--ink); }
+  #t1:checked ~ nav label[for="t1"],
+  #t2:checked ~ nav label[for="t2"],
+  #t3:checked ~ nav label[for="t3"],
+  #t4:checked ~ nav label[for="t4"],
+  #t5:checked ~ nav label[for="t5"] { color: var(--ink); border-bottom-color: var(--gold); }
+
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  .section-head { border-top: 1px solid var(--ink); padding-top: 16px; margin-bottom: 26px; }
+  .section-head h2 { font-size: 25px; }
+  .section-head p.dek { color: var(--ink-2); max-width: 74ch; margin: 10px 0 0; font-size: 15px; }
+  section.block { margin-top: 56px; }
+  section.block:first-child { margin-top: 0; }
+
+  /* hero */
+  .hero h1 { font-size: clamp(32px, 4.6vw, 46px); letter-spacing: -.01em; margin-bottom: 16px; }
+  .hero .lede { font-size: 17.5px; color: var(--ink-2); max-width: 68ch; }
+  .hero .kicker { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .statrow { display: flex; flex-wrap: wrap; gap: 0; margin-top: 40px; border-top: 1px solid var(--line); }
+  .stat { flex: 1 1 160px; padding: 20px 22px 0; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: 0; }
+  .stat b { display: block; font-family: var(--serif); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; font-family: var(--mono); }
+  .principle { margin-top: 46px; border: 1px solid var(--line); border-left: 3px solid var(--gold); background: var(--gold-soft); padding: 18px 22px; }
+  .principle p { font-size: 14.5px; color: var(--ink-2); font-style: italic; }
+
+  /* agents/architecture cards */
+  .agent-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .agent { display: grid; grid-template-columns: 200px 1fr; gap: 30px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+  @media (max-width: 720px) { .agent { grid-template-columns: 1fr; gap: 8px; } }
+  .agent .who { }
+  .agent .no { font-family: var(--serif); font-size: 34px; color: var(--panel-3); font-weight: 700; line-height: 1; }
+  .agent h3 { font-size: 18px; margin-top: 4px; }
+  .agent .role { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-top: 6px; }
+  .agent p.body { color: var(--ink-2); font-size: 14.5px; max-width: 62ch; margin-top: 4px; }
+  .handles { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .handles span { font-size: 11.5px; color: var(--ink-2); background: var(--panel-2); border: 1px solid var(--line); padding: 3px 10px; }
+
+  /* how it works — vertical process */
+  .flow { border-top: 1px solid var(--line); }
+  .fstep { display: grid; grid-template-columns: 46px 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); position: relative; }
+  .fstep .fno { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--accent); }
+  .fstep h4 { font-size: 15.5px; margin-bottom: 5px; }
+  .fstep p { font-size: 14px; color: var(--ink-2); max-width: 68ch; }
+  .fbranch { background: var(--accent-soft); border: 1px solid var(--line); border-left: 3px solid var(--accent); padding: 16px 20px; margin: 6px 0 6px 66px; }
+  .fbranch .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .fbranch p { font-size: 13.5px; color: var(--ink-2); }
+  .routegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 6px 66px; }
+  @media (max-width: 700px) { .routegrid { grid-template-columns: 1fr; } }
+  .route { border: 1px solid var(--line); padding: 14px 16px; }
+  .route.auto { border-top: 3px solid var(--good); }
+  .route.co { border-top: 3px solid var(--warn); }
+  .route.esc { border-top: 3px solid var(--crit); }
+  .route .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .route.auto .tag { color: var(--good); } .route.co .tag { color: var(--warn); } .route.esc .tag { color: var(--crit); }
+  .route h4 { font-size: 13.5px; margin: 5px 0 4px; }
+  .route p { font-size: 12.5px; color: var(--ink-2); }
+
+  /* phases */
+  .phase { border: 1px solid var(--line); margin-bottom: 14px; }
+  .phase-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 20px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .phase-head .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+  .phase-head h3 { font-size: 16.5px; margin-top: 3px; }
+  .phase-head .weeks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); border: 1px solid var(--line); padding: 3px 12px; white-space: nowrap; }
+  .phase-body { padding: 18px 20px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
   @media (max-width: 760px) { .phase-body { grid-template-columns: 1fr; } }
-  .phase-body h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-family: var(--mono); margin: 0 0 8px; }
-  .stepul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
-  .stepul li { font-size: 13.5px; color: var(--ink-2); padding-left: 18px; position: relative; }
-  .stepul li::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); }
-  .exit-box { background: var(--panel-2); border: 1px dashed var(--line); padding: 11px 13px; font-size: 12.5px; color: var(--ink-2); }
-  .exit-box b { color: var(--ink); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 5px; }
+  .phase-body h4 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-family: var(--mono); margin: 0 0 10px; }
+  .stepul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .stepul li { font-size: 13.5px; color: var(--ink-2); padding-left: 16px; position: relative; }
+  .stepul li::before { content: "—"; position: absolute; left: 0; color: var(--ink-3); }
+  .exit-box { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 15px; font-size: 12.5px; color: var(--ink-2); }
+  .exit-box b { color: var(--ink); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
 
+  /* tables / eta */
   .tblwrap { overflow-x: auto; border: 1px solid var(--line); }
-  table { border-collapse: collapse; width: 100%; background: var(--panel); font-size: 13.5px; }
-  th { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-align: left; background: var(--panel-2); }
-  th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); text-align: left; background: var(--panel-2); }
+  th, td { padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tr:last-child td { border-bottom: 0; }
   td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
   tr.total td { font-weight: 700; background: var(--panel-2); }
 
-  .gantt { display: grid; gap: 9px; margin-top: 18px; }
-  .gantt-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 14px; }
+  .gantt { display: grid; gap: 10px; margin-top: 22px; }
+  .gantt-row { display: grid; grid-template-columns: 165px 1fr; align-items: center; gap: 14px; }
   .gantt-row .lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; }
-  .gantt-track { position: relative; height: 24px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-  .gantt-bar { position: absolute; top: 0; bottom: 0; background: var(--accent); display: flex; align-items: center; padding: 0 8px; font-family: var(--mono); font-size: 10.5px; color: var(--accent-ink); font-weight: 700; white-space: nowrap; }
-  .gantt-scale { display: grid; grid-template-columns: 150px 1fr; gap: 14px; }
+  .gantt-track { position: relative; height: 24px; background: var(--panel-2); border: 1px solid var(--line); }
+  .gantt-bar { position: absolute; top: 0; bottom: 0; background: var(--accent); display: flex; align-items: center; padding: 0 8px; font-family: var(--mono); font-size: 10.5px; color: #fff; font-weight: 700; }
+  .gantt-scale { display: grid; grid-template-columns: 165px 1fr; gap: 14px; }
   .gantt-scale .axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
 
-  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 12px; margin-top: 16px; }
-  .risk { border: 1px solid var(--line); border-top: 3px solid var(--crit); background: var(--panel); padding: 13px 15px; }
-  .risk h4 { font-size: 13px; font-weight: 600; }
-  .risk p { font-size: 12.5px; color: var(--ink-2); margin: 5px 0 0; }
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 0; border: 1px solid var(--line); border-bottom: 0; margin-top: 20px; }
+  .risk { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 20px; }
+  .risk:last-child { border-right: 0; }
+  .risk h4 { font-size: 13.5px; }
+  .risk p { font-size: 12.5px; color: var(--ink-2); margin: 6px 0 0; }
 
-  footer { margin-top: 60px; border-top: 1px solid var(--line); padding-top: 14px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .06em; }
+  footer { border-top: 1px solid var(--line); padding: 20px 0 40px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
+  .back { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-decoration: none; }
 </style>
 
+<input type="radio" name="tab" id="t1" class="tabinput" checked>
+<input type="radio" name="tab" id="t2" class="tabinput">
+<input type="radio" name="tab" id="t3" class="tabinput">
+<input type="radio" name="tab" id="t4" class="tabinput">
+<input type="radio" name="tab" id="t5" class="tabinput">
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="mark">O</span><b>Orchestrator Agent</b><span>Architecture Brief</span></div>
+    <div class="tabs">
+      <label for="t1" class="tab">Overview</label>
+      <label for="t2" class="tab">Agents &amp; Architecture</label>
+      <label for="t3" class="tab">How It Works</label>
+      <label for="t4" class="tab">Build Roadmap</label>
+      <label for="t5" class="tab">Delivery &amp; Risks</label>
+    </div>
+  </div>
+</nav>
+
+<main>
 <div class="wrap">
 
-<header class="mast">
-  <a class="back-link" href="../">&larr; Agent Swarm for Workforce Management Operations</a>
-  <p class="eyebrow" style="margin-top:16px">Companion architecture case study</p>
-  <h1>Orchestrator Agent — from architecture to a working build plan</h1>
-  <p class="lede">A hub-and-spoke orchestrator's six internal components, turned into a phase-by-phase engineering plan and a delivery estimate for a small team. Scope: the orchestrator itself — the domain agents it coordinates are separate workstreams.</p>
-  <div class="statgrid">
-    <div class="stat"><b>6</b><span>internal components</span></div>
-    <div class="stat"><b>5</b><span>build phases</span></div>
-    <div class="stat"><b>2–4</b><span>engineers assumed</span></div>
-    <div class="stat"><b>13–22</b><span>weeks, team-size dependent</span></div>
-  </div>
-</header>
-
-<section id="arch">
-  <div class="section-head">
-    <p class="eyebrow">01 · Architecture</p>
-    <h2>Six components, one hub</h2>
-    <p>The orchestrator does not forecast, schedule, or monitor adherence itself — domain agents do. It routes every trigger, scores confidence, and keeps an immutable trail.</p>
-  </div>
-  <div class="component-grid">
-    <div class="node"><span class="n">1</span><h3>Trigger Router / Ingress</h3><p>Authenticates, normalizes, and classifies every incoming trigger into a canonical envelope.</p></div>
-    <div class="node"><span class="n">2</span><h3>Confidence Decision Engine</h3><p>Scores each proposed action and routes it to autonomous / copilot / escalate.</p></div>
-    <div class="node"><span class="n">3</span><h3>Agent &amp; Tool Registry</h3><p>Resolves a trigger to the right domain agent(s) and the tool scopes they may call.</p></div>
-    <div class="node"><span class="n">4</span><h3>State / Workflow Manager</h3><p>Graph-based execution with retries, timeouts, and durable state across restarts.</p></div>
-    <div class="node"><span class="n">5</span><h3>Audit Logger</h3><p>Immutable record of every decision — full coverage of auto and copilot actions.</p></div>
-    <div class="node"><span class="n">6</span><h3>Memory &amp; HITL Interface</h3><p>Vector-store context and playbooks in; approval queue, digest, and escalation console out.</p></div>
+<section id="p1" class="panel">
+  <div class="hero">
+    <p class="kicker">Companion case study · multi-agent systems</p>
+    <h1>The coordination hub for a multi-agent workforce-management system</h1>
+    <p class="lede">One orchestrator, six internal components, five coordinated domain agents. This brief explains what each piece does, how a request actually moves through the system end to end, and what it would take a small team to build.</p>
+    <div class="statrow">
+      <div class="stat"><b>6</b><span>internal components</span></div>
+      <div class="stat"><b>4</b><span>trigger types handled</span></div>
+      <div class="stat"><b>3</b><span>confidence tiers</span></div>
+      <div class="stat"><b>&lt; 1 min</b><span>real-time fast-path target</span></div>
+      <div class="stat"><b>100%</b><span>decisions audited</span></div>
+    </div>
+    <div class="principle">
+      <p>"The orchestrator does not forecast, schedule, or monitor adherence itself — it routes, scores, records, and remembers. Every decision it hands off is complete the moment it's made, whether or not a person ever looks at it again."</p>
+    </div>
   </div>
 </section>
 
-<section id="steps">
+<section id="p2" class="panel">
   <div class="section-head">
-    <p class="eyebrow">02 · Build steps</p>
+    <p class="eyebrow">01 · Agents &amp; Architecture</p>
+    <h2>Six components, one narrow job each</h2>
+    <p class="dek">The orchestrator is deliberately not where the intelligence lives — that's the domain agents' job. Its six components exist to make sure the right agent handles the right work, with the right level of trust, on the record.</p>
+  </div>
+  <div class="agent-list">
+    <div class="agent">
+      <div class="who"><span class="no">01</span></div>
+      <div>
+        <h3>Trigger Router / Ingress</h3>
+        <p class="role">Single entry point</p>
+        <p class="body">The single entry point for everything the system reacts to. Four distinct trigger types arrive here: a scheduled job ticking over, an event arriving from a message bus, a monitored metric crossing a threshold, or an analyst making an on-demand request. The router authenticates the caller, normalizes whatever shape the payload arrives in into one canonical envelope, and classifies both what kind of work this is and how urgent it is — including whether it needs to bypass everything else via the real-time fast path.</p>
+        <div class="handles"><span>Authentication &amp; validation</span><span>Payload normalization</span><span>Intent &amp; priority classification</span><span>Fast-path detection</span></div>
+      </div>
+    </div>
+    <div class="agent">
+      <div class="who"><span class="no">02</span></div>
+      <div>
+        <h3>Confidence Decision Engine</h3>
+        <p class="role">Trust scoring</p>
+        <p class="body">Every proposed action a domain agent produces is scored here before it's allowed to do anything. The score isn't just the model's own self-assessment — it factors in how fresh and complete the underlying data was, how accurate this use case has historically been, and how far the result deviates from what a corrective-action playbook would expect. That number decides which of three tiers the action lands in: confidently correct enough to run on its own, good enough to recommend but not to trust blindly, or uncertain enough that a person needs to look first.</p>
+        <div class="handles"><span>Evidence-weighted scoring</span><span>Three-tier autonomy routing</span><span>Threshold calibration over time</span></div>
+      </div>
+    </div>
+    <div class="agent">
+      <div class="who"><span class="no">03</span></div>
+      <div>
+        <h3>Agent &amp; Tool Registry</h3>
+        <p class="role">Resolution &amp; scope</p>
+        <p class="body">A living catalog of every domain agent, which use cases each one owns, and which external tools each is allowed to call. When the router hands off a classified trigger, the registry resolves it to the right agent — or agents — and to the specific, scoped set of tools they're permitted to use for this task. Read-only access is enforced right here, at resolution time, as a second line of defense alongside whatever the network gateway already enforces.</p>
+        <div class="handles"><span>Agent / use-case catalog</span><span>Trigger-to-agent resolution</span><span>Tool-scope enforcement</span></div>
+      </div>
+    </div>
+    <div class="agent">
+      <div class="who"><span class="no">04</span></div>
+      <div>
+        <h3>State / Workflow Manager</h3>
+        <p class="role">Execution &amp; resilience</p>
+        <p class="body">Every workflow the orchestrator runs is represented as a graph — nodes are agent or tool calls, edges are the control flow between them — with state that survives beyond any single request. If a step fails, it retries with backoff; if it hangs, it times out; if a domain agent is unavailable, the workflow degrades gracefully rather than failing outright. If the orchestrator itself restarts mid-workflow, execution resumes from where it left off.</p>
+        <div class="handles"><span>Graph-based execution</span><span>Retries &amp; timeouts</span><span>Durable state across restarts</span><span>Graceful degradation</span></div>
+      </div>
+    </div>
+    <div class="agent">
+      <div class="who"><span class="no">05</span></div>
+      <div>
+        <h3>Audit Logger</h3>
+        <p class="role">Governance</p>
+        <p class="body">An append-only record of every decision the system makes: what came in, what confidence score it received, which tier it landed in, what action was taken, what the outcome was, who or what acted, and exactly when. Full coverage of every autonomous and human-approved action is a governance requirement, not an operational nicety — and it's the raw material the learning loop and any root-cause investigation both depend on.</p>
+        <div class="handles"><span>Immutable decision trail</span><span>Full coverage of acted decisions</span><span>Feeds learning &amp; root-cause review</span></div>
+      </div>
+    </div>
+    <div class="agent">
+      <div class="who"><span class="no">06</span></div>
+      <div>
+        <h3>Memory &amp; HITL Interface</h3>
+        <p class="role">Learning &amp; the human layer</p>
+        <p class="body">Two things live here. Memory reads relevant history and corrective-action playbooks into a workflow as it starts, and writes back what actually happened once it finishes, so the same mistake doesn't get made twice. HITL is the human side of the system: a weekly digest for anything that ran on its own, a short-turnaround approval queue for anything needing sign-off first, and a full-context escalation console for anything the system genuinely isn't confident about.</p>
+        <div class="handles"><span>Contextual memory read/write</span><span>Weekly digest</span><span>Approval queue</span><span>Escalation console</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="p3" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">02 · How It Works</p>
+    <h2>How a single request actually moves through the system</h2>
+    <p class="dek">This is the mechanism, end to end — including the one deliberate shortcut (the real-time fast path) and the three-way fork every other result goes through before anything is allowed to happen.</p>
+  </div>
+
+  <div class="flow">
+    <div class="fstep">
+      <div class="fno">1</div>
+      <div><h4>A trigger arrives</h4><p>A scheduled tick, a bus event, a threshold breach, or a direct request — all four land at the same ingress.</p></div>
+    </div>
+
+    <div class="fbranch">
+      <p class="lbl">Real-time check</p>
+      <p>If this trigger belongs to one of the handful of use cases designated for the real-time fast path, the flow <strong>short-circuits here entirely</strong>: the responsible domain agent acts immediately, and the orchestrator is only notified afterward, asynchronously — purely so the action still gets audited. Everything else continues below.</p>
+    </div>
+
+    <div class="fstep">
+      <div class="fno">2</div>
+      <div><h4>Ingress classifies</h4><p>Authenticates, normalizes the payload, and classifies both the intent and the priority of the request.</p></div>
+    </div>
+    <div class="fstep">
+      <div class="fno">3</div>
+      <div><h4>Registry resolves</h4><p>Maps the classified trigger to the right domain agent(s) and the tool scopes they're allowed to use for this task.</p></div>
+    </div>
+    <div class="fstep">
+      <div class="fno">4</div>
+      <div><h4>Workflow instantiates</h4><p>The graph for this run is created and relevant memory/context is loaded before execution starts.</p></div>
+    </div>
+    <div class="fstep">
+      <div class="fno">5</div>
+      <div><h4>The domain agent executes</h4><p>Calls systems of record through scoped, read-only tool access, runs whatever model inference the task needs, and produces its output — a forecast, a plan, an alert, or a recommendation.</p></div>
+    </div>
+    <div class="fstep">
+      <div class="fno">6</div>
+      <div><h4>Confidence scores the result</h4><p>The proposed action is scored and assigned to one of three tiers.</p></div>
+    </div>
+
+    <div class="routegrid">
+      <div class="route auto"><span class="tag">High confidence</span><h4>Autonomous</h4><p>Executes immediately. Shows up in the weekly digest for after-the-fact review.</p></div>
+      <div class="route co"><span class="tag">Medium confidence</span><h4>Copilot</h4><p>Waits in the approval queue. A person confirms or rejects before it executes.</p></div>
+      <div class="route esc"><span class="tag">Low confidence</span><h4>Escalate</h4><p>Routes to a person with full context. Does not execute on its own.</p></div>
+    </div>
+
+    <div class="fstep">
+      <div class="fno">7</div>
+      <div><h4>Audit Logger writes the trail</h4><p>Every run gets a complete record — inputs, score, tier, action, outcome — regardless of which path it took above.</p></div>
+    </div>
+    <div class="fstep" style="border-bottom:0">
+      <div class="fno">8</div>
+      <div><h4>Memory closes the loop</h4><p>The outcome is stored, so future confidence scoring and routing get a little better every time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="p4" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">03 · Build Roadmap</p>
     <h2>Phase-by-phase engineering plan</h2>
-    <p>A foundation phase (decisions and scaffolding) and a hardening phase (calibration and resilience) bracket the three core build phases, each expanded into concrete steps and exit criteria.</p>
+    <p class="dek">A foundation phase and a hardening phase bracket the three core build phases, each broken into concrete steps and exit criteria.</p>
   </div>
 
   <div class="phase">
@@ -171,7 +339,7 @@
     <div class="phase-body">
       <div><h4>Steps</h4><ul class="stepul">
         <li>Event bus integration for the event-driven trigger type</li>
-        <li>Fast-path bypass for the three real-time use cases: event → domain agent action directly, async audit notification back — needs coordination with the team building those agents</li>
+        <li>Fast-path bypass for the real-time use cases: event → domain agent action directly, async audit notification back — needs coordination with the team building those agents</li>
         <li>Confidence Decision Engine goes live: real evidence-based scoring replacing the fixed stub</li>
         <li>Registry expands to the ticketing and CRM/forecast-input systems</li>
         <li>HITL copilot tier: a time-boxed approval queue — queue, approve/reject, replay the approved action</li>
@@ -208,11 +376,11 @@
   </div>
 </section>
 
-<section id="eta">
+<section id="p5" class="panel">
   <div class="section-head">
-    <p class="eyebrow">03 · Delivery estimate</p>
+    <p class="eyebrow">04 · Delivery &amp; Risks</p>
     <h2>ETA for a 2–4 person team</h2>
-    <p>Orchestrator scope only. Ranges reflect that some work — decisions, calibration — is bounded by calendar time, not by adding people; team size mainly compresses phases 1–3, where tasks genuinely parallelize across the six components.</p>
+    <p class="dek">Orchestrator scope only. Ranges reflect that some work — decisions, calibration — is bounded by calendar time, not by adding people; team size mainly compresses phases 1–3, where tasks genuinely parallelize across the six components.</p>
   </div>
   <div class="tblwrap">
     <table>
@@ -234,14 +402,11 @@
     <div class="gantt-row"><span class="lbl">Reporting / cross-domain</span><div class="gantt-track"><div class="gantt-bar" style="left:56%; width:29%">P3</div></div></div>
     <div class="gantt-row"><span class="lbl">Hardening</span><div class="gantt-track"><div class="gantt-bar" style="left:85%; width:14%">P4</div></div></div>
   </div>
-  <p style="font-size:12px; color:var(--ink-3); margin-top:8px">Illustrative timeline for a 2-person team (~21 weeks total, shown sequentially — in practice hardening overlaps the tail of Phase 3).</p>
-</section>
+  <p style="font-size:12px; color:var(--ink-3); margin-top:10px">Illustrative timeline for a 2-person team (~21 weeks total, shown sequentially — in practice hardening overlaps the tail of Phase 3).</p>
 
-<section id="risks">
-  <div class="section-head">
-    <p class="eyebrow">04 · Risk factors</p>
-    <h2>What could move this — regardless of headcount</h2>
-    <p>The estimate above assumes a clean run. None of these are fixed by adding more engineers.</p>
+  <div class="section-head" style="margin-top:52px">
+    <h2 style="font-size:20px">Risk factors — regardless of headcount</h2>
+    <p class="dek">None of these are fixed by adding more engineers.</p>
   </div>
   <div class="risk-grid">
     <div class="risk"><h4>Historical-data-platform migration</h4><p>A hard dependency for the whole mesh. If it slips, phases that depend on real historical data slip with it — an external dependency, not orchestrator dev time.</p></div>
@@ -251,6 +416,7 @@
   </div>
 </section>
 
-<footer>Orchestrator Agent · build roadmap &amp; delivery estimate · companion case study</footer>
+<footer><a class="back" href="../">&larr; Agent Swarm for Workforce Management Operations</a> · Orchestrator Agent architecture brief · companion case study</footer>
 
 </div>
+</main>

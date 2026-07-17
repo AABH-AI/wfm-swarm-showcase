@@ -1,0 +1,585 @@
+<title>Orchestrator Agent — Architecture &amp; Delivery Brief</title>
+<style>
+  :root {
+    --paper: #ffffff; --panel: #ffffff; --panel-2: #f5f6f8; --panel-3: #eceef2;
+    --ink: #12181f; --ink-2: #40495a; --ink-3: #6c7686; --line: #e0e3e9;
+    --accent: #1b3a5c; --accent-soft: #eaf0f6; --accent-ink: #ffffff;
+    --gold: #93701f; --gold-soft: #f7f0df;
+    --good: #1f6e45; --good-soft: #e9f4ee;
+    --warn: #91650c; --warn-soft: #faf1de;
+    --crit: #8a2f2a; --crit-soft: #f7e9e7;
+    --llm: #6a4fb3; --llm-soft: #f1ecf9;
+    --serif: Georgia, "Times New Roman", "Segoe UI", serif;
+    --sans: "Segoe UI", Arial, Helvetica, sans-serif;
+    --mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+  h1, h2, h3, h4 { font-family: var(--serif); text-wrap: balance; margin: 0; font-weight: 700; }
+  a { color: var(--accent); }
+  p { margin: 0; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  code { font-family: var(--mono); font-size: .92em; background: var(--panel-2); padding: 1px 5px; border-radius: 2px; }
+
+  /* tab mechanism — CSS-only, no JS */
+  .tabinput { position: absolute; opacity: 0; pointer-events: none; }
+  .panel { display: none; padding: 44px 0 90px; }
+  #t1:checked ~ main #p1,
+  #t2:checked ~ main #p2,
+  #t3:checked ~ main #p3,
+  #t4:checked ~ main #p4,
+  #t5:checked ~ main #p5 { display: block; }
+
+  /* top bar */
+  nav.topbar { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  .topbar-inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; padding: 16px 0; }
+  .brand .mark { width: 26px; height: 26px; background: var(--accent); color: #fff; font-family: var(--serif); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .brand b { font-family: var(--serif); font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+  .brand span { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .tabs { display: flex; gap: 2px; flex-wrap: wrap; }
+  .tab { font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--ink-3); text-decoration: none; padding: 20px 14px; border-bottom: 2px solid transparent; cursor: pointer; user-select: none; }
+  .tab:hover { color: var(--ink); }
+  #t1:checked ~ nav label[for="t1"],
+  #t2:checked ~ nav label[for="t2"],
+  #t3:checked ~ nav label[for="t3"],
+  #t4:checked ~ nav label[for="t4"],
+  #t5:checked ~ nav label[for="t5"] { color: var(--ink); border-bottom-color: var(--gold); }
+
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 12px; }
+  .section-head { border-top: 1px solid var(--ink); padding-top: 16px; margin-bottom: 26px; }
+  .section-head h2 { font-size: 25px; }
+  .section-head p.dek { color: var(--ink-2); max-width: 74ch; margin: 10px 0 0; font-size: 15px; }
+  section.block { margin-top: 56px; }
+  section.block:first-child { margin-top: 0; }
+
+  /* hero */
+  .hero h1 { font-size: clamp(32px, 4.6vw, 46px); letter-spacing: -.01em; margin-bottom: 16px; }
+  .hero .lede { font-size: 17.5px; color: var(--ink-2); max-width: 68ch; }
+  .hero .kicker { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .statrow { display: flex; flex-wrap: wrap; gap: 0; margin-top: 40px; border-top: 1px solid var(--line); }
+  .stat { flex: 1 1 160px; padding: 20px 22px 0; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: 0; }
+  .stat b { display: block; font-family: var(--serif); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; font-family: var(--mono); }
+  .principle { margin-top: 46px; border: 1px solid var(--line); border-left: 3px solid var(--gold); background: var(--gold-soft); padding: 18px 22px; }
+  .principle p { font-size: 14.5px; color: var(--ink-2); font-style: italic; }
+
+  /* agents/architecture cards */
+  .agent-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .agent { display: grid; grid-template-columns: 200px 1fr; gap: 30px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+  @media (max-width: 720px) { .agent { grid-template-columns: 1fr; gap: 8px; } }
+  .agent .who { }
+  .agent .no { font-family: var(--serif); font-size: 34px; color: var(--panel-3); font-weight: 700; line-height: 1; }
+  .agent h3 { font-size: 18px; margin-top: 4px; }
+  .agent .role { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-top: 6px; }
+  .agent p.body { color: var(--ink-2); font-size: 14.5px; max-width: 62ch; margin-top: 4px; }
+  .handles { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .handles span { font-size: 11.5px; color: var(--ink-2); background: var(--panel-2); border: 1px solid var(--line); padding: 3px 10px; }
+
+  /* how it works — vertical process */
+  .flow { border-top: 1px solid var(--line); }
+  .fstep { display: grid; grid-template-columns: 46px 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); position: relative; }
+  .fstep .fno { font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--accent); }
+  .fstep h4 { font-size: 15.5px; margin-bottom: 5px; }
+  .fstep p { font-size: 14px; color: var(--ink-2); max-width: 68ch; }
+  .fbranch { background: var(--accent-soft); border: 1px solid var(--line); border-left: 3px solid var(--accent); padding: 16px 20px; margin: 6px 0 6px 66px; }
+  .fbranch .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .fbranch p { font-size: 13.5px; color: var(--ink-2); }
+  .routegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 6px 66px; }
+  @media (max-width: 700px) { .routegrid { grid-template-columns: 1fr; } }
+  .route { border: 1px solid var(--line); padding: 14px 16px; }
+  .route.auto { border-top: 3px solid var(--good); }
+  .route.co { border-top: 3px solid var(--warn); }
+  .route.esc { border-top: 3px solid var(--crit); }
+  .route .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .route.auto .tag { color: var(--good); } .route.co .tag { color: var(--warn); } .route.esc .tag { color: var(--crit); }
+  .route h4 { font-size: 13.5px; margin: 5px 0 4px; }
+  .route p { font-size: 12.5px; color: var(--ink-2); }
+
+  /* phases */
+  .phase { border: 1px solid var(--line); margin-bottom: 14px; }
+  .phase-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 20px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .phase-head .tag { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+  .phase-head h3 { font-size: 16.5px; margin-top: 3px; }
+  .phase-head .weeks { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); border: 1px solid var(--line); padding: 3px 12px; white-space: nowrap; }
+  .phase-body { padding: 18px 20px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+  @media (max-width: 760px) { .phase-body { grid-template-columns: 1fr; } }
+  .phase-body h4 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-family: var(--mono); margin: 0 0 10px; }
+  .stepul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .stepul li { font-size: 13.5px; color: var(--ink-2); padding-left: 16px; position: relative; }
+  .stepul li::before { content: "—"; position: absolute; left: 0; color: var(--ink-3); }
+  .exit-box { background: var(--panel-2); border: 1px solid var(--line); padding: 12px 15px; font-size: 12.5px; color: var(--ink-2); }
+  .exit-box b { color: var(--ink); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+
+  /* tables / eta */
+  .tblwrap { overflow-x: auto; border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); text-align: left; background: var(--panel-2); }
+  th, td { padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  tr.total td { font-weight: 700; background: var(--panel-2); }
+
+  .gantt { display: grid; gap: 10px; margin-top: 22px; }
+  .gantt-row { display: grid; grid-template-columns: 165px 1fr; align-items: center; gap: 14px; }
+  .gantt-row .lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: right; }
+  .gantt-track { position: relative; height: 24px; background: var(--panel-2); border: 1px solid var(--line); }
+  .gantt-bar { position: absolute; top: 0; bottom: 0; background: var(--accent); display: flex; align-items: center; padding: 0 8px; font-family: var(--mono); font-size: 10.5px; color: #fff; font-weight: 700; }
+  .gantt-scale { display: grid; grid-template-columns: 165px 1fr; gap: 14px; }
+  .gantt-scale .axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 0; border: 1px solid var(--line); border-bottom: 0; margin-top: 20px; }
+  .risk { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 20px; }
+  .risk:last-child { border-right: 0; }
+  .risk h4 { font-size: 13.5px; }
+  .risk p { font-size: 12.5px; color: var(--ink-2); margin: 6px 0 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 20px 0 40px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
+  .back { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); text-decoration: none; }
+
+  /* diagrams */
+  .diagram-wrap { border: 1px solid var(--line); overflow-x: auto; background: var(--panel); }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; min-width: 900px; }
+  .diagram-cap { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
+
+  .coverage { margin-top: 34px; border: 1px solid var(--line); }
+  .coverage-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .coverage-head h3 { font-size: 15px; font-weight: 700; }
+  .coverage-count { font-family: var(--serif); font-size: 26px; font-weight: 700; color: var(--good); font-variant-numeric: tabular-nums; }
+  .coverage-count small { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--ink-3); }
+  .coverage-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 900px) { .coverage-grid { grid-template-columns: repeat(2, 1fr); } }
+  .cov { padding: 16px 18px; border-right: 1px solid var(--line); border-top: 1px solid var(--line); }
+  .cov:nth-child(5n) { border-right: 0; }
+  @media (max-width: 900px) { .cov:nth-child(2n) { border-right: 0; } .cov:nth-child(5n) { border-right: 1px solid var(--line); } }
+  .cov h4 { font-size: 12.5px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; font-family: var(--mono); }
+  .cov ul { list-style: none; margin: 10px 0 0; padding: 0; }
+  .cov li { font-size: 13px; color: var(--ink-2); padding: 3px 0 3px 14px; position: relative; }
+  .cov li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; font-size: 11px; }
+  .cov-cross { background: var(--gold-soft); }
+  .cov-cross h4 { color: var(--gold); }
+
+  /* animated live trace (tab 3) */
+  .livebadge { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .livedot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: livepulse 1.6s ease-in-out infinite; }
+  @keyframes livepulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+  @media (prefers-reduced-motion: reduce) { .livedot { animation: none; } }
+</style>
+
+<input type="radio" name="tab" id="t1" class="tabinput" checked>
+<input type="radio" name="tab" id="t2" class="tabinput">
+<input type="radio" name="tab" id="t3" class="tabinput">
+<input type="radio" name="tab" id="t4" class="tabinput">
+<input type="radio" name="tab" id="t5" class="tabinput">
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="mark">O</span><b>Orchestrator Agent</b><span>Architecture Brief</span></div>
+    <div class="tabs">
+      <label for="t1" class="tab">Overview</label>
+      <label for="t2" class="tab">Agents &amp; Architecture</label>
+      <label for="t3" class="tab">How It Works</label>
+      <label for="t4" class="tab">Build Roadmap</label>
+      <label for="t5" class="tab">Delivery &amp; Risks</label>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<section id="p1" class="panel">
+  <div class="hero">
+    <p class="kicker">Architecture overview · multi-agent systems</p>
+    <h1>The coordination hub for a multi-agent workforce-management system</h1>
+    <p class="lede">One orchestrator, six internal components, five coordinated domain agents. This brief explains what each piece does, how a request actually moves through the system end to end, and what it would take a small team to build.</p>
+    <div class="statrow">
+      <div class="stat"><b>6</b><span>internal components</span></div>
+      <div class="stat"><b>4</b><span>trigger types handled</span></div>
+      <div class="stat"><b>3</b><span>confidence tiers</span></div>
+      <div class="stat"><b>&lt; 1 min</b><span>real-time fast-path target</span></div>
+      <div class="stat"><b>100%</b><span>decisions audited</span></div>
+    </div>
+    <div class="principle">
+      <p>"The orchestrator does not forecast, schedule, or monitor adherence itself — it routes, scores, records, and remembers. Every decision it hands off is complete the moment it's made, whether or not a person ever looks at it again."</p>
+    </div>
+  </div>
+</section>
+
+<section id="p2" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">01 · Agents &amp; Architecture</p>
+    <h2>Six components, one narrow job each</h2>
+    <p class="dek">The orchestrator is deliberately not where the intelligence lives — that's the domain agents' job. It exists to route, score, resolve, execute, record, and remember.</p>
+  </div>
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1160 700" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="a1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#40495a"/></marker>
+      </defs>
+      <text x="20" y="18" font-size="11" font-weight="700" letter-spacing="1" fill="#6c7686">TRIGGERS</text>
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="20" y="28" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="59" text-anchor="middle">Scheduled</text>
+        <rect x="20" y="96" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="127" text-anchor="middle">Event</text>
+        <rect x="20" y="164" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="195" text-anchor="middle">Threshold</text>
+        <rect x="20" y="232" width="200" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="120" y="263" text-anchor="middle">Request</text>
+      </g>
+      <path d="M220 154 L255 154" stroke="#40495a" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="260" y="20" width="560" height="330" fill="#f5f6f8" stroke="#1b3a5c" stroke-width="1.5"/>
+      <text x="540" y="45" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1b3a5c" letter-spacing="1">ORCHESTRATOR AGENT</text>
+
+      <g font-size="12" font-weight="600" fill="#12181f">
+        <rect x="280" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="362" y="90" text-anchor="middle">① Trigger</text><text x="362" y="106" text-anchor="middle">Router</text>
+        <rect x="458" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="540" y="90" text-anchor="middle">② Confidence</text><text x="540" y="106" text-anchor="middle">Engine</text>
+        <rect x="636" y="62" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="718" y="90" text-anchor="middle">③ Agent &amp; Tool</text><text x="718" y="106" text-anchor="middle">Registry</text>
+        <rect x="280" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="362" y="168" text-anchor="middle">④ Workflow</text><text x="362" y="184" text-anchor="middle">Manager</text>
+        <rect x="458" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="540" y="168" text-anchor="middle">⑤ Audit</text><text x="540" y="184" text-anchor="middle">Logger</text>
+        <rect x="636" y="140" width="165" height="66" fill="#fff" stroke="#e0e3e9"/><text x="718" y="168" text-anchor="middle">⑥ Memory</text><text x="718" y="184" text-anchor="middle">&amp; HITL</text>
+      </g>
+
+      <text x="280" y="232" font-size="11" font-weight="700" letter-spacing="1" fill="#6c7686">DECISION ROUTING</text>
+      <g font-size="11.5" font-weight="700">
+        <rect x="280" y="242" width="165" height="34" fill="#e9f4ee" stroke="#1f6e45"/><text x="362" y="263" text-anchor="middle" fill="#1f6e45">Autonomous</text>
+        <rect x="458" y="242" width="165" height="34" fill="#faf1de" stroke="#91650c"/><text x="540" y="263" text-anchor="middle" fill="#91650c">Copilot</text>
+        <rect x="636" y="242" width="165" height="34" fill="#f7e9e7" stroke="#8a2f2a"/><text x="718" y="263" text-anchor="middle" fill="#8a2f2a">Escalate</text>
+      </g>
+      <text x="540" y="305" text-anchor="middle" font-size="12" font-style="italic" fill="#40495a">Peer mesh: two cross-domain agents (root-cause, executive-summary)</text>
+      <text x="540" y="323" text-anchor="middle" font-size="12" font-style="italic" fill="#40495a">hold standing read access across every domain agent's output.</text>
+
+      <path d="M820 185 L855 185" stroke="#40495a" stroke-width="1.6" marker-end="url(#a1)"/>
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="860" y="20" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="51" text-anchor="middle">Forecast</text>
+        <rect x="860" y="90" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="121" text-anchor="middle">Capacity</text>
+        <rect x="860" y="160" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="191" text-anchor="middle">Scheduling</text>
+        <rect x="860" y="230" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="261" text-anchor="middle">Real-Time Adherence</text>
+        <rect x="860" y="300" width="280" height="52" fill="#eaf0f6" stroke="#1b3a5c"/><text x="1000" y="331" text-anchor="middle">Reporting</text>
+        <rect x="860" y="390" width="280" height="52" fill="#fff" stroke="#93701f" stroke-dasharray="5 3"/><text x="1000" y="421" text-anchor="middle" fill="#93701f">Root-Cause (cross-domain)</text>
+        <rect x="860" y="460" width="280" height="52" fill="#fff" stroke="#93701f" stroke-dasharray="5 3"/><text x="1000" y="491" text-anchor="middle" fill="#93701f">Executive Summary (cross-domain)</text>
+      </g>
+    </svg>
+  </div>
+  <p class="diagram-cap">Solid boxes = the five domain agents, each owning its own use cases. Dashed gold boxes = the two cross-domain agents — the only ones with standing peer-read access across all five.</p>
+
+  <div class="coverage">
+    <div class="coverage-head">
+      <h3>Full coverage — every use case has an owner</h3>
+      <span class="coverage-count">15<small>/15</small></span>
+    </div>
+    <div class="coverage-grid">
+      <div class="cov"><h4>Forecast</h4><ul><li>Volume forecasting</li><li>Anomaly detection</li><li>Event-impact modeling</li><li>Forecast narrative</li></ul></div>
+      <div class="cov"><h4>Capacity</h4><ul><li>Handle-time calibration</li><li>Headcount planning</li><li>Shrinkage trending</li><li>Hiring recommendation</li></ul></div>
+      <div class="cov"><h4>Scheduling</h4><ul><li>Schedule optimization</li><li>Intraday re-optimization</li></ul></div>
+      <div class="cov"><h4>Real-Time Adherence</h4><ul><li>Live alerting</li><li>SL-breach prediction</li><li>Ticketing auto-triage</li></ul></div>
+      <div class="cov cov-cross"><h4>Cross-Domain</h4><ul><li>Root-cause analysis</li><li>Executive summary</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="p3" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">02 · How It Works</p>
+    <h2>How a single request moves through the system</h2>
+    <p class="dek">Every box is tagged by what actually computes it — deterministic code, one LLM call, or a full agentic loop. That distinction is the point of this diagram.</p>
+    <p class="livebadge"><span class="livedot"></span>Live trace — watch a request move through the system below</p>
+  </div>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 1160 1160" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="b1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#40495a"/></marker>
+        <marker id="b2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#93701f"/></marker>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- legend -->
+      <g font-size="12.5" font-weight="600">
+        <rect x="20" y="8" width="16" height="16" fill="#1b3a5c"/><text x="42" y="21" fill="#40495a">Deterministic / Math</text>
+        <rect x="255" y="8" width="16" height="16" fill="#6a4fb3"/><text x="277" y="21" fill="#40495a">Single LLM Call</text>
+        <rect x="440" y="8" width="16" height="16" fill="#93701f"/><text x="462" y="21" fill="#40495a">Agentic (multi-step reasoning)</text>
+      </g>
+
+      <!-- trigger row -->
+      <g font-size="13" font-weight="600" fill="#12181f">
+        <rect x="20" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="150" y="97" text-anchor="middle">Scheduled</text>
+        <rect x="300" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="430" y="97" text-anchor="middle">Event</text>
+        <rect x="580" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="710" y="97" text-anchor="middle">Threshold</text>
+        <rect x="860" y="64" width="260" height="56" fill="#eaf0f6" stroke="#1b3a5c"/><text x="990" y="97" text-anchor="middle">Request</text>
+      </g>
+      <path d="M580 120 L580 155" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- diamond -->
+      <polygon points="580,158 700,222 580,286 460,222" fill="#f5f6f8" stroke="#6c7686" stroke-width="1.4"/>
+      <text x="580" y="217" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Real-time</text>
+      <text x="580" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">fast path?</text>
+
+      <!-- fast path branch -->
+      <text x="712" y="215" font-size="11.5" font-weight="700" fill="#93701f">YES</text>
+      <path d="M700 222 L775 222" stroke="#93701f" stroke-width="1.6" marker-end="url(#b2)"/>
+      <rect x="780" y="192" width="360" height="60" fill="#f7f0df" stroke="#93701f" stroke-width="1.4"/>
+      <text x="960" y="216" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Fast path — agent acts now</text>
+      <text x="960" y="235" text-anchor="middle" font-size="11.5" fill="#40495a">Bypasses everything below. Audited async.</text>
+      <path d="M1140 252 L1140 979 L835 979" stroke="#93701f" stroke-width="1.4" fill="none" stroke-dasharray="6 4" marker-end="url(#b1)"/>
+      <text x="1145" y="600" font-size="10.5" font-style="italic" fill="#93701f" transform="rotate(90 1145 600)">async audit</text>
+
+      <text x="588" y="300" font-size="11.5" font-weight="700" fill="#40495a">NO</text>
+      <path d="M580 286 L580 315" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- plumbing -->
+      <rect x="330" y="318" width="500" height="96" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="340" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Orchestration Plumbing</text>
+      <g font-size="11" font-weight="600" fill="#12181f">
+        <rect x="350" y="352" width="145" height="46" fill="#fff" stroke="#c7d2e0"/><text x="422" y="372" text-anchor="middle">Ingress</text><text x="422" y="386" text-anchor="middle">classifies</text>
+        <rect x="507" y="352" width="145" height="46" fill="#fff" stroke="#c7d2e0"/><text x="580" y="372" text-anchor="middle">Registry</text><text x="580" y="386" text-anchor="middle">resolves</text>
+        <rect x="664" y="352" width="146" height="46" fill="#fff" stroke="#c7d2e0"/><text x="737" y="372" text-anchor="middle">Workflow</text><text x="737" y="386" text-anchor="middle">instantiates</text>
+      </g>
+      <path d="M580 414 L580 440" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- agent execution: 3-way classification -->
+      <text x="580" y="462" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">The domain agent executes — the computation type depends on the use case</text>
+      <g font-size="12.5">
+        <rect x="20" y="478" width="350" height="185" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+        <text x="195" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Deterministic / Math</text>
+        <text x="40" y="532" fill="#40495a">Staffing math (Erlang-C),</text>
+        <text x="40" y="551" fill="#40495a">z-score anomaly detection,</text>
+        <text x="40" y="570" fill="#40495a">weekday-seasonal forecasting.</text>
+        <text x="40" y="598" fill="#6c7686" font-style="italic">No model call. Pure code —</text>
+        <text x="40" y="616" fill="#6c7686" font-style="italic">same input always gives the</text>
+        <text x="40" y="634" fill="#6c7686" font-style="italic">same output.</text>
+
+        <rect x="405" y="478" width="350" height="185" fill="#f1ecf9" stroke="#6a4fb3" stroke-width="1.4"/>
+        <text x="580" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Single LLM Call</text>
+        <text x="425" y="532" fill="#40495a">Forecast commentary,</text>
+        <text x="425" y="551" fill="#40495a">executive-summary narrative.</text>
+        <text x="425" y="598" fill="#6c7686" font-style="italic">One prompt in, one completion</text>
+        <text x="425" y="616" fill="#6c7686" font-style="italic">out. No tool use, no further</text>
+        <text x="425" y="634" fill="#6c7686" font-style="italic">reasoning steps.</text>
+
+        <rect x="790" y="478" width="350" height="185" fill="#f7f0df" stroke="#93701f" stroke-width="1.4"/>
+        <text x="965" y="504" text-anchor="middle" font-weight="700" fill="#12181f">Agentic</text>
+        <text x="810" y="532" fill="#40495a">Root-cause analysis: gathers</text>
+        <text x="810" y="551" fill="#40495a">evidence across domains, searches</text>
+        <text x="810" y="570" fill="#40495a">memory, classifies, decides.</text>
+        <text x="810" y="598" fill="#6c7686" font-style="italic">Multi-step reasoning — the</text>
+        <text x="810" y="616" fill="#6c7686" font-style="italic">model chooses what to look at</text>
+        <text x="810" y="634" fill="#6c7686" font-style="italic">next, not just what to say.</text>
+      </g>
+      <path d="M195 663 L580 700" stroke="#1b3a5c" stroke-width="1.3" fill="none"/>
+      <path d="M580 663 L580 700" stroke="#40495a" stroke-width="1.6"/>
+      <path d="M965 663 L580 700" stroke="#93701f" stroke-width="1.3" fill="none"/>
+      <path d="M580 700 L580 715" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- confidence engine -->
+      <rect x="330" y="718" width="500" height="70" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="745" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Confidence Engine</text>
+      <text x="580" y="763" text-anchor="middle" font-size="11.5" fill="#40495a">Scoring formula over evidence signals — deterministic</text>
+      <path d="M580 788 L580 815" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- 3-way routing -->
+      <g font-size="12.5" font-weight="700">
+        <rect x="20" y="818" width="350" height="80" fill="#e9f4ee" stroke="#1f6e45" stroke-width="1.4"/>
+        <text x="195" y="844" text-anchor="middle" fill="#1f6e45">Autonomous</text>
+        <text x="195" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">≥ 85% — executes now</text>
+        <rect x="405" y="818" width="350" height="80" fill="#faf1de" stroke="#91650c" stroke-width="1.4"/>
+        <text x="580" y="844" text-anchor="middle" fill="#91650c">Copilot</text>
+        <text x="580" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">60–85% — approval queue</text>
+        <rect x="790" y="818" width="350" height="80" fill="#f7e9e7" stroke="#8a2f2a" stroke-width="1.4"/>
+        <text x="965" y="844" text-anchor="middle" fill="#8a2f2a">Escalate</text>
+        <text x="965" y="864" text-anchor="middle" font-size="11" font-weight="400" fill="#40495a">&lt; 60% — human console</text>
+      </g>
+      <text x="580" y="912" text-anchor="middle" font-size="11.5" font-style="italic" fill="#6c7686">threshold comparison — deterministic, not a model call</text>
+
+      <path d="M195 898 L580 930" stroke="#1f6e45" stroke-width="1.3" fill="none"/>
+      <path d="M580 898 L580 930" stroke="#40495a" stroke-width="1.6"/>
+      <path d="M965 898 L580 930" stroke="#8a2f2a" stroke-width="1.3" fill="none"/>
+      <path d="M580 930 L580 945" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- audit -->
+      <rect x="330" y="948" width="500" height="62" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+      <text x="580" y="984" text-anchor="middle" font-size="13" font-weight="700" fill="#12181f">Audit Logger — writes the complete trail</text>
+      <path d="M580 1010 L580 1035" stroke="#40495a" stroke-width="1.6" marker-end="url(#b1)"/>
+
+      <!-- memory -->
+      <g font-size="12.5">
+        <rect x="340" y="1038" width="240" height="80" fill="#f1ecf9" stroke="#6a4fb3" stroke-width="1.4"/>
+        <text x="460" y="1064" text-anchor="middle" font-weight="700" fill="#12181f">Embed outcome</text>
+        <text x="460" y="1084" text-anchor="middle" font-size="11" fill="#40495a">embedding model call</text>
+        <rect x="600" y="1038" width="240" height="80" fill="#eaf0f6" stroke="#1b3a5c" stroke-width="1.4"/>
+        <text x="720" y="1064" text-anchor="middle" font-weight="700" fill="#12181f">Store &amp; retrieve</text>
+        <text x="720" y="1084" text-anchor="middle" font-size="11" fill="#40495a">cosine-similarity search</text>
+      </g>
+
+      <!-- ============ LIVE TRACE: animated request moving through the mesh ============ -->
+      <!-- Synced glow-pulses: each overlay lights up the instant the traveling dot reaches it -->
+      <g pointer-events="none">
+        <rect x="580" y="64" width="260" height="56" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.009;0.034;0.064;1" values="0;0;1;0;0"/>
+        </rect>
+        <polygon points="580,158 700,222 580,286 460,222" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.146;0.171;0.201;1" values="0;0;1;0;0"/>
+        </polygon>
+        <rect x="330" y="318" width="500" height="96" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.297;0.322;0.352;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="405" y="478" width="350" height="185" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.512;0.537;0.567;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="330" y="718" width="500" height="70" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.705;0.730;0.760;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="405" y="818" width="350" height="80" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.815;0.840;0.870;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="330" y="948" width="500" height="62" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.942;0.967;0.986;1" values="0;0;1;0;0"/>
+        </rect>
+        <rect x="340" y="1038" width="240" height="80" fill="none" stroke="#6a4fb3" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.95;0.99;1" values="0;0;1;1"/>
+        </rect>
+        <rect x="600" y="1038" width="240" height="80" fill="none" stroke="#93701f" stroke-width="3" opacity="0" filter="url(#glow)">
+          <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.95;0.99;1" values="0;0;1;1"/>
+        </rect>
+      </g>
+
+      <!-- the traveling request: a lead pulse with two trailing echoes -->
+      <circle r="9" fill="#93701f" filter="url(#glow)">
+        <animateMotion dur="14s" repeatCount="indefinite" path="M580,60 L580,1010"/>
+        <animate attributeName="opacity" dur="14s" repeatCount="indefinite" keyTimes="0;0.03;0.93;1" values="0;1;1;0"/>
+      </circle>
+      <circle r="6" fill="#93701f" opacity="0.45">
+        <animateMotion dur="14s" repeatCount="indefinite" begin="0.15s" path="M580,60 L580,1010"/>
+      </circle>
+      <circle r="4" fill="#93701f" opacity="0.25">
+        <animateMotion dur="14s" repeatCount="indefinite" begin="0.3s" path="M580,60 L580,1010"/>
+      </circle>
+    </svg>
+  </div>
+  <p class="diagram-cap">The gold "fast path" and "agentic" boxes are the only two places autonomy actually happens. Everything else on this page is a rule, a formula, or a lookup. The glowing pulse above traces one request end to end, in real time.</p>
+</section>
+
+<section id="p4" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">03 · Build Roadmap</p>
+    <h2>Phase-by-phase engineering plan</h2>
+    <p class="dek">A foundation phase and a hardening phase bracket the three core build phases, each broken into concrete steps and exit criteria.</p>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 0 · Foundation</span><h3>Decisions and scaffolding</h3></div><span class="weeks">1–2 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Resolve open decisions: event bus, API gateway, and its RBAC/encryption owner</li>
+        <li>Finalize the four canonical contracts as versioned schemas: <code>Trigger</code>, <code>AgentInvocation</code>, <code>AgentResult</code>, <code>Decision</code></li>
+        <li>Stand up base environment: cluster namespace, secrets-vault scaffold, CI/CD, Dev → Test → Prod promotion path</li>
+        <li>Confirm status of the historical-data-platform migration as a tracked external dependency</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P1 when</b>Contracts are frozen v1, environment is provisioned, and the event bus / gateway choices are locked.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 1 · Data foundation &amp; demand</span><h3>Scheduled routing, registry, audit logging</h3></div><span class="weeks">3–5 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Trigger Router: scheduled-trigger path only — auth, validation, canonical envelope</li>
+        <li>Agent &amp; Tool Registry against one external system first (the primary analytics platform) — catalog + resolution logic</li>
+        <li>State/Workflow Manager: graph skeleton, one linear flow, retries + timeouts, durable state across restarts</li>
+        <li>Audit Logger wired end to end from day one — inputs, confidence, tier, outcome</li>
+        <li>Confidence Engine shipped as a fixed-threshold stub (not calibrated yet)</li>
+        <li>Integration milestone: one scheduled forecast trigger runs end to end, dry-run</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P2 when</b>One scheduled trigger runs reliably with a complete audit trail, and the registry correctly resolves against the analytics platform.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 2 · Scheduling &amp; real-time</span><h3>Event-driven routing, fast-path, confidence live</h3></div><span class="weeks">4–6 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Event bus integration for the event-driven trigger type</li>
+        <li>Fast-path bypass for the real-time use cases: event → domain agent action directly, async audit notification back — needs coordination with the team building those agents</li>
+        <li>Confidence Decision Engine goes live: real evidence-based scoring replacing the fixed stub</li>
+        <li>Registry expands to the ticketing and CRM/forecast-input systems</li>
+        <li>HITL copilot tier: a time-boxed approval queue — queue, approve/reject, replay the approved action</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for P3 when</b>Fast-path measured under a minute end to end; confidence engine scoring real evidence, not a fixed threshold.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 3 · Reporting &amp; cross-domain</span><h3>Threshold routing, peer reads, full HITL, learning loop</h3></div><span class="weeks">4–6 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Threshold trigger type support in the Ingress</li>
+        <li>Peer read-access wiring for the cross-domain agents (root-cause and executive-summary) across all domains</li>
+        <li>Memory &amp; HITL completed: vector-store read/write, playbook store, weekly digest, escalation console with full context</li>
+        <li>Learning loop: confirmed outcomes feed back into confidence calibration on a weekly cadence</li>
+        <li>Observability fully wired — every decision logging confidence, inputs, and outcome</li>
+        <li>Validate non-functional targets: uptime, full audit coverage, model-cost budget</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Ready for hardening when</b>All four trigger types are live, all HITL tiers are operational, and the learning loop demonstrably moves confidence calibration.</div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><div><span class="tag">Phase 4 · Hardening</span><h3>Calibration and resilience before calling it production</h3></div><span class="weeks">2–3 wks</span></div>
+    <div class="phase-body">
+      <div><h4>Steps</h4><ul class="stepul">
+        <li>Calibrate confidence thresholds against accumulated real audit outcomes</li>
+        <li>Resilience testing: orchestrator restart recovery, domain-agent outage survival</li>
+        <li>Security review: read-only scope enforcement, secrets audit, RBAC sign-off</li>
+      </ul></div>
+      <div><h4>Exit criteria</h4><div class="exit-box"><b>Calendar note</b>Calibration needs live traffic to accumulate outcomes — bounded by elapsed time, not headcount, so it doesn't compress much with a bigger team.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="p5" class="panel">
+  <div class="section-head">
+    <p class="eyebrow">04 · Delivery &amp; Risks</p>
+    <h2>ETA for a 2–4 person team</h2>
+    <p class="dek">Orchestrator scope only. Ranges reflect that some work — decisions, calibration — is bounded by calendar time, not by adding people; team size mainly compresses phases 1–3, where tasks genuinely parallelize across the six components.</p>
+  </div>
+  <div class="tblwrap">
+    <table>
+      <tr><th>Phase</th><th class="num">2 engineers</th><th class="num">3 engineers</th><th class="num">4 engineers</th></tr>
+      <tr><td>Phase 0 · Foundation</td><td class="num">1.5 wks</td><td class="num">1.5 wks</td><td class="num">1.5 wks</td></tr>
+      <tr><td>Phase 1 · Data foundation</td><td class="num">4–5 wks</td><td class="num">3–4 wks</td><td class="num">2.5–3 wks</td></tr>
+      <tr><td>Phase 2 · Scheduling / real-time</td><td class="num">5–6 wks</td><td class="num">4–5 wks</td><td class="num">3–3.5 wks</td></tr>
+      <tr><td>Phase 3 · Reporting / cross-domain</td><td class="num">5.5–6.5 wks</td><td class="num">4–5 wks</td><td class="num">3–3.5 wks</td></tr>
+      <tr><td>Phase 4 · Hardening</td><td class="num">2.5–3 wks</td><td class="num">2.5–3 wks</td><td class="num">2–2.5 wks</td></tr>
+      <tr class="total"><td>Total</td><td class="num">~19–22 wks</td><td class="num">~16–19 wks</td><td class="num">~13–15 wks</td></tr>
+      <tr class="total"><td>≈ months</td><td class="num">~4.5–5.5 mo</td><td class="num">~4–4.5 mo</td><td class="num">~3–3.5 mo</td></tr>
+    </table>
+  </div>
+  <div class="gantt">
+    <div class="gantt-scale"><div></div><div class="axis"><span>Week 0</span><span>5</span><span>10</span><span>15</span><span>20</span></div></div>
+    <div class="gantt-row"><span class="lbl">Foundation</span><div class="gantt-track"><div class="gantt-bar" style="left:0%; width:7%">P0</div></div></div>
+    <div class="gantt-row"><span class="lbl">Data foundation</span><div class="gantt-track"><div class="gantt-bar" style="left:7%; width:22%">P1</div></div></div>
+    <div class="gantt-row"><span class="lbl">Scheduling / real-time</span><div class="gantt-track"><div class="gantt-bar" style="left:29%; width:27%">P2</div></div></div>
+    <div class="gantt-row"><span class="lbl">Reporting / cross-domain</span><div class="gantt-track"><div class="gantt-bar" style="left:56%; width:29%">P3</div></div></div>
+    <div class="gantt-row"><span class="lbl">Hardening</span><div class="gantt-track"><div class="gantt-bar" style="left:85%; width:14%">P4</div></div></div>
+  </div>
+  <p style="font-size:12px; color:var(--ink-3); margin-top:10px">Illustrative timeline for a 2-person team (~21 weeks total, shown sequentially — in practice hardening overlaps the tail of Phase 3).</p>
+
+  <div class="section-head" style="margin-top:52px">
+    <h2 style="font-size:20px">Risk factors — regardless of headcount</h2>
+    <p class="dek">None of these are fixed by adding more engineers.</p>
+  </div>
+  <div class="risk-grid">
+    <div class="risk"><h4>Historical-data-platform migration</h4><p>A hard dependency for the whole mesh. If it slips, phases that depend on real historical data slip with it — an external dependency, not orchestrator dev time.</p></div>
+    <div class="risk"><h4>Open architectural decisions</h4><p>Event bus, API gateway, and RBAC ownership still to be confirmed. Each week these stay open pushes Phase 0 — and everything after it — by a week.</p></div>
+    <div class="risk"><h4>Cross-team dependency on domain agents</h4><p>The fast-path and the peer-mesh reads only work once the domain agents exist. If those teams run behind, the orchestrator's integration milestones wait.</p></div>
+    <div class="risk"><h4>Confidence calibration needs real traffic</h4><p>Calibrating the autonomy thresholds against actual outcomes takes elapsed weeks of live decisions accumulating, not just engineering hours.</p></div>
+  </div>
+</section>
+
+<footer>Orchestrator Agent · architecture &amp; delivery brief · derived from the Agentic Mesh Blueprint deck</footer>
+
+</div>
+</main>
